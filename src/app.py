@@ -16,9 +16,11 @@ generator_model = Generator()
 generator_model.load_state_dict(torch.load("models/generator_model.pth"))
 generator_model.eval()
 
+
 @app.get("/")
 async def root():
     return {"message": "Handwriting recognition and generation API"}
+
 
 # Handwriting recognition route
 @app.post("/recognize")
@@ -38,6 +40,7 @@ async def recognize_handwriting(file: UploadFile = File(...)):
         return {"recognized_text": recognized_text}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # Fine-tuning route
 @app.post("/fine-tune")
@@ -63,6 +66,7 @@ async def fine_tune(user_samples: list[UploadFile] = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 # Handwriting generation route
 @app.post("/generate")
 async def generate_handwriting(text: str):
@@ -75,6 +79,9 @@ async def generate_handwriting(text: str):
         result_image = combine_images(generated_images)
         result_image.save("generated_handwriting.png")
 
-        return {"message": "Handwriting generated successfully", "file": "generated_handwriting.png"}
+        return {
+            "message": "Handwriting generated successfully",
+            "file": "generated_handwriting.png",
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
