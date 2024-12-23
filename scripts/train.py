@@ -1,8 +1,17 @@
+import time
+from datetime import datetime, timedelta
 import torch
 import torch.optim as optim
 import torch.nn as nn
 from src.models.recognition import HandwrittingCNN
 from src.utils.preprocess import EMNISTPreprocessor
+
+def format_time(seconds):
+    """convert seconds to human readable string"""
+    return str(timedelta(seconds=int(seconds)))
+
+# record start time
+start_time = time.time()
 
 # init preprocessor and get data loaders
 preprocessor = EMNISTPreprocessor()
@@ -64,12 +73,19 @@ print('Starting training...')
     
 epochs = 10
 best_accuracy = 0.0
+epoch_times = []
 
 for epoch in range(epochs):
+    epoch_start = time.time()
+    
     train_loss = train(model, train_loader, optimizer, criterion, device)
     test_acc = test(model, test_loader, device)
     
+    epoch_time = time.time() - epoch_start
+    epoch_times.append(epoch_time)
+    
     print(f'Epoch {epoch+1}/{epochs}')
+    print(f'Time taken: {format_time(epoch_time)}')
     print(f'Train Loss: {train_loss:.4f}')
     print(f'Test Accuracy: {test_acc:.4f}')
     
@@ -80,6 +96,11 @@ for epoch in range(epochs):
         print(f'Saved new best model with accuracy: {best_accuracy:.4f}')
         
     print('-'*50)
+
+# calculate final timing statistics
+total_time = time.time() - start_time
+avg_epoch_time = sum(epoch_times) / len(epoch_times)
+
 
 print("Training complete!")
 print(f"Best accuracy achieved: {best_accuracy:.4f}")
