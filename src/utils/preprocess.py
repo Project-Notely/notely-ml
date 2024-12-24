@@ -1,7 +1,7 @@
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-
+from PIL import Image
 
 class EMNISTPreprocessor:
     def __init__(self):
@@ -59,3 +59,21 @@ class EMNISTPreprocessor:
     def set_custom_transform(self, transform):
         """Set a custom transformation pipeline"""
         self.transform = transform
+
+
+class ImagePreprocessor:
+    def __init__(self):
+        self.transform = transforms.Compose(
+            [
+                transforms.Grayscale(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5,), (0.5,)),
+            ]
+        )
+
+    def load_image(self, image_path):
+        """Load an image from a file"""
+        image = Image.open(image_path)
+        image = image.resize((28, 28))
+        image_tensor = self.transform(image).unsqueeze(0)
+        return image_tensor
