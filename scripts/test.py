@@ -134,4 +134,4 @@ if __name__ == '__main__':
 
     # # Load the model and make predictions
     model = load_model('./models/mnist_cnn.pth', device)
-    predict_image(model, './data/download2.png', device)
+    predict_image(model, './data/aaa.png', device)
