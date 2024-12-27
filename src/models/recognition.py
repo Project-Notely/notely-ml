@@ -1,10 +1,9 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-
-class HandwrittingCNN(nn.Module):
+class EMNISTCNN(nn.Module):
     def __init__(self, num_classes=62):  # EMNIST byclass has 62 classes
-        super(HandwrittingCNN, self).__init__()
+        super(EMNISTCNN, self).__init__()
         
         # first convolution layer
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)  # 32 filters
@@ -14,6 +13,11 @@ class HandwrittingCNN(nn.Module):
         # stride=1: move window 1 pixel at a time
         # padding=1: add 1 pixel border to preserve size
         
+        # first pooling layer
+        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
+        # reduces the spatial dimensions by half
+        # takes maximum value in each 2x2 window
+        
         # second convolution layer
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)  # 64 filters
         # input: 32 channels (from conv1)
@@ -22,13 +26,18 @@ class HandwrittingCNN(nn.Module):
         # stride=1: move window 1 pixel at a time
         # padding=1: add 1 pixel border to preserve size
         
-        # max pooling layer
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-        # reduces the spatial dimensions by half
+        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        # second pooling layer
+        # reduces the spatial dimension by half
         # takes maximum value in each 2x2 window
-        # used after each conv layer
         
         # first fully connected layer
+        # 64 * 7 * 7 is the output size of the last convolutional layer
+        # output of conv1 is size 32 * 28 * 28
+        # after pool1, the size is 32 * 14 * 14
+        # output of conv2 is size 64 * 14 * 14
+        # after pool2, the size is 64 * 7 * 7
+        # 128 is the number of neurons in the first fully connected layer
         self.fc1 = nn.Linear(64 * 7 * 7, 128)  # fully connected layer
         # input: flattened feature maps (64 channels * 7 * 7 pixels)
         # output: 128 neurons
@@ -41,17 +50,8 @@ class HandwrittingCNN(nn.Module):
         # each output corresponds to a different character class
         
     def forward(self, x):
-        # first conv + relu + pool
         x = self.pool(F.relu(self.conv1(x)))
-        # 1. apply conv1 convolution
-        # 2. apply ReLU activation function (removes negative values)
-        # 3. apply max pooling to reduce spatial dimensions
-        
-        # second conv + relu + pool
         x = self.pool(F.relu(self.conv2(x)))
-        # 1. apply conv2 convolution
-        # 2. apply ReLU activation function (removes negative values)
-        # 3. apply max pooling to reduce spatial dimensions
         
         # flatten the output for fully connected layers
         x = x.view(-1, 64 * 7 * 7)  # flatten the full connected layer
