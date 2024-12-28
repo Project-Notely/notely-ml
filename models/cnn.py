@@ -50,8 +50,8 @@ class EMNISTCNN(nn.Module):
         # each output corresponds to a different character class
         
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
+        x = self.pool1(F.relu(self.conv1(x)))
+        x = self.pool2(F.relu(self.conv2(x)))
         
         # flatten the output for fully connected layers
         x = x.view(-1, 64 * 7 * 7)  # flatten the full connected layer
