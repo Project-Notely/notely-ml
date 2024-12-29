@@ -31,13 +31,31 @@ class EMNISTCNN(nn.Module):
             # kernel_size=3: 3x3 sliding window
             # padding=1: add 1 pixel border to preserve size
             nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            # batch normalization
             nn.BatchNorm2d(64),
+            # activation function
             nn.ReLU(inplace=True),
+            # pooling layer
+            # reduces the spatial dimensions by half
+            # takes maximum value in each 2x2 window
             nn.MaxPool2d(kernel_size=2, stride=2),
+            # dropout layer
+            # randomly zeroes some of the elements of the input tensor
+            # with probability p using samples from a Bernoulli distribution
             nn.Dropout2d(0.25),
+            # third convolution layer
+            # input: 64 channels (from conv2)
+            # output: 128 channels (128 different feature maps)
+            # kernel_size=3: 3x3 sliding window
+            # padding=1: add 1 pixel border to preserve size
             nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            # batch normalization
             nn.BatchNorm2d(128),
+            # activation function
             nn.ReLU(inplace=True),
+            # pooling layer
+            # reduces the spatial dimensions by half
+            # takes maximum value in each 2x2 window
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Dropout2d(0.25),
         )
