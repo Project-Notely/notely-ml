@@ -5,7 +5,7 @@ from PIL import Image
 
 
 class EMNISTPreprocessor:
-    def __init__(self, root_dir, batch_size):
+    def __init__(self, root_dir, split, batch_size):
         
         # define default transformations
         self.transform = transforms.Compose(
@@ -19,7 +19,7 @@ class EMNISTPreprocessor:
         
         self.train_dataset = torchvision.datasets.EMNIST(
             root=root_dir,
-            split="byclass",
+            split=split,
             train=True,
             download=True,
             transform=self.transform,
@@ -27,7 +27,7 @@ class EMNISTPreprocessor:
 
         self.test_dataset = torchvision.datasets.EMNIST(
             root=root_dir,
-            split="byclass",
+            split=split,
             train=False,
             download=True,
             transform=self.transform,
