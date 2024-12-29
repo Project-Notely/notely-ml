@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class EMNISTCNN(nn.Module):
-    def __init__(self, num_classes=62):  # EMNIST byclass has 62 classes
+    def __init__(self, num_classes=62):  # EMNIST balanced has 47 classes
         super(EMNISTCNN, self).__init__()
         
         # first convolution layer

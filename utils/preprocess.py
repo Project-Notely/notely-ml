@@ -5,7 +5,7 @@ from PIL import Image
 
 
 class EMNISTPreprocessor:
-    def __init__(self, root_dir, split, batch_size):
+    def __init__(self, root_dir='./data', split='balanced', batch_size=64):
         
         # define default transformations
         self.transform = transforms.Compose(
@@ -40,6 +40,8 @@ class EMNISTPreprocessor:
         self.test_loader = DataLoader(
             self.test_dataset, batch_size=batch_size, shuffle=False
         )
+        
+        self.mapping = self.train_dataset.class_to_idx
 
     def get_transform(self):
         """Return the transformation pipeline"""
@@ -54,7 +56,6 @@ class ImagePreprocessor:
     def __init__(self):
         self.transform = transforms.Compose(
             [
-                transforms.Grayscale(),
                 transforms.ToTensor(),
                 transforms.Normalize((0.5,), (0.5,)),
             ]
@@ -62,7 +63,7 @@ class ImagePreprocessor:
 
     def load_image(self, image_path):
         """Load an image from a file"""
-        image = Image.open(image_path)
-        image = image.resize((28, 28))
+        image = Image.open(image_path).convert('L')  # convert to grayscale
+        image = image.resize((28, 28))  # resize to 28x28
         image_tensor = self.transform(image).unsqueeze(0)
         return image_tensor
