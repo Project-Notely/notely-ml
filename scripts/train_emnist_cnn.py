@@ -9,7 +9,7 @@ from utils.preprocess import EMNISTPreprocessor
 def train_model(model, train_loader, optimizer, criterion, device, epochs=5):
     print('Training EMNIST CNN ...')
     start_time = time.time()
-    model.train
+    model.train()
     best_loss = float('inf')
 
     for epoch in range(epochs):
@@ -67,7 +67,8 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    preprocessor = EMNISTPreprocessor(rootdir='./data', split='balanced', batch_size=64)
+    split = 'balanced'
+    preprocessor = EMNISTPreprocessor(root_dir='./data', split=split, batch_size=64)
     train_loader = preprocessor.train_loader
     test_loader = preprocessor.test_loader
 
@@ -80,5 +81,5 @@ if __name__ == '__main__':
         epochs=10,
     )
     accuracy = test_model(model=model, test_loader=test_loader, device=device)
-    save_path = f''
-    torch.save(model.state_dict(), )
+    save_path = f'trained_models/emnist_cnn_{split}_{round(accuracy, 2)}.pth'
+    torch.save(model.state_dict(), save_path)
