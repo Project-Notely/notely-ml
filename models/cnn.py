@@ -57,44 +57,37 @@ class EMNISTCNN(nn.Module):
             # reduces the spatial dimensions by half
             # takes maximum value in each 2x2 window
             nn.MaxPool2d(kernel_size=2, stride=2),
+            # dropout layer
             nn.Dropout2d(0.25),
         )
-
-        # first fully connected layer
-        # 64 * 7 * 7 is the output size of the last convolutional layer
-        # output of conv1 is size 32 * 28 * 28
-        # after pool1, the size is 32 * 14 * 14
-        # output of conv2 is size 64 * 14 * 14
-        # after pool2, the size is 64 * 7 * 7
-        # 128 is the number of neurons in the first fully connected layer
-        self.fc1 = nn.Linear(64 * 7 * 7, 128)  # fully connected layer
-        # input: flattened feature maps (64 channels * 7 * 7 pixels)
-        # output: 128 neurons
-        # this layer learns high-level combinations of features
-
-        # output layer
-        self.fc2 = nn.Linear(128, num_classes)  # output layer
-        # input: 128 features from fc1
-        # output: num_classes neurons (62 for EMNIST byclass)
-        # each output corresponds to a different character class
+        
+        self.classifier = nn.Sequential(
+            # first fully connected layer
+            # input: 128 channels (from conv3)
+            # 3 * 3 is the size of the output of the last convolutional layer
+            # output: 512 neurons (512 different feature maps)
+            nn.Linear(128 * 3 * 3, 512),
+            # batch normalization
+            nn.BatchNorm1d(512),
+            # activation function
+            nn.ReLU(inplace=True),
+            # dropout layer
+            # randomly zeroes some of the elements of the input tensor
+            # with probability p using samples from a Bernoulli distribution
+            nn.Dropout(0.5),
+            # output layer
+            # input: 512 neurons (from fc1)
+            # output: num_classes neurons
+            nn.Linear(512, num_classes)
+        )
 
     def forward(self, x):
-        x = self.pool1(F.relu(self.conv1(x)))
-        x = self.pool2(F.relu(self.conv2(x)))
-
+        # pass the input through the convolutional layers
+        x = self.features(x)
         # flatten the output for fully connected layers
-        x = x.view(-1, 64 * 7 * 7)  # flatten the full connected layer
-        # reshapes the 3D tensor to 2D
-        # -1 means batch size is inferred
-        # 64 * 7 * 7 is the number of features
-
-        # first fully connected layer + relu
-        x = F.relu(self.fc1(x))
-        # apply fc1 and relu activation
-
-        # output layer
-        x = self.fc2(x)
-        # final classification layer
-        # output will be scores for each class
-
+        # x.size(0) is the batch size
+        # -1 means the remaining dimensions are flattened
+        x = x.view(x.size(0), -1)
+        # pass the flattened output through the fully connected layers
+        x = self.classifier(x)
         return x

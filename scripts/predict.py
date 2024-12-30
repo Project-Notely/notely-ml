@@ -31,6 +31,7 @@ def main():
         
     emnist_preprocessor = EMNISTPreprocessor()
     mapping = emnist_preprocessor.mapping
+    print(mapping)
     print(f'Predicted String: {mapping[str(predicted.item())]}')
     
     # display image
