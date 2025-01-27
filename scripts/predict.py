@@ -1,7 +1,7 @@
 import argparse
 import torch
 import matplotlib.pyplot as plt
-from models.cnn import EMNISTCNN
+from unused.cnn import EMNISTCNN
 from utils.preprocess import ImagePreprocessor, EMNISTPreprocessor
 
 def main():

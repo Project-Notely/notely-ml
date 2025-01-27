@@ -2,7 +2,7 @@ import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from models.cnn import EMNISTCNN
+from unused.cnn import EMNISTCNN
 from utils.preprocess import EMNISTPreprocessor
 
 
