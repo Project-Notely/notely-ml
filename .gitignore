@@ -16,3 +16,5 @@ images/
 *.ico
 *.svg
 *.webp
+
+push.sh
