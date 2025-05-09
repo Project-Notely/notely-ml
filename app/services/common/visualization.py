@@ -8,6 +8,8 @@ def draw_bounding_boxes(
     colour: tuple[int, int, int] = (0, 255, 0),
     thickness: int = 2,
     add_labels: bool = True,
+    text_colour: tuple[int, int, int] = (255, 255, 255),
+    text_bg_colour: tuple[int, int, int] = (0, 0, 0),
 ) -> np.ndarray:
     """Generic function to draw bounding boxes on an image
 
@@ -36,13 +38,16 @@ def draw_bounding_boxes(
             (text_w, text_h), _ = cv2.getTextSize(
                 label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1
             )
+            cv2.rectangle(
+                output_image, (x, y - text_h - 10), (x + text_w, y), text_bg_colour, -1
+            )
             cv2.putText(
                 output_image,
                 label,
                 (x, y - 10),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
-                (255, 255, 255),
+                text_colour,
                 1,
             )
 

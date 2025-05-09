@@ -66,7 +66,7 @@ def search_text(query, index):
                 for match in index[word]:
                     page_num, box, confidence, original_text = match
                     if confidence >= min_confidence:
-                        match-score = 0.7 * (len(word) / len(query))
+                        match_score = 0.7 * (len(word) / len(query))
                         results.append((page_num, box, confidence, original_text, match_score))
     
     # strategy 4: partial word matching
