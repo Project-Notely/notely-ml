@@ -3,9 +3,8 @@ import numpy as np
 import re
 
 import pytesseract
-from google.cloud import vision
 
-IMAGE_PATH = "images/test.png"
+IMAGE_PATH = "app/services/image.png"
 
 
 def preprocess_image(image_path: str) -> tuple[np.ndarray, np.ndarray]:
@@ -97,6 +96,7 @@ def perform_htr(image_segment: np.ndarray, method: str = "pytesseract") -> str:
             print(f"Error using Tesseract: {e}")
             return "", 0.0
     elif method == "google_vision":
+        pass
         client = vision.ImageAnnotatorClient()
         content = cv2.imencode(".png", image_segment)[1].tobytes()
         image = vision.Image(content=content)
@@ -216,7 +216,7 @@ if __name__ == "__main__":
         text_index = index_text(recognition_results)
 
         # example search
-        search_query = "wumpo"
+        search_query = "bisection"
         print(f"\nSearching for: '{search_query}'")
         found_locations = search_text(search_query, text_index)
 
