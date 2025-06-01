@@ -14,7 +14,7 @@ def initialize_reader():
     return reader
 
 
-def perform_ocr(img: np.ndarray) -> list[tuple[str, tuple[int, int, int, int], float]]:
+def perform_ocr(img: np.ndarray) -> list[tuple[tuple, str, float]]:
     """Perform OCR on an image"""
     try:
         reader = initialize_reader()
@@ -27,8 +27,8 @@ def perform_ocr(img: np.ndarray) -> list[tuple[str, tuple[int, int, int, int], f
 
 
 def convert_to_recognition_results(
-    ocr_results: list[tuple[str, tuple[int, int, int, int], float]],
-):
+    ocr_results: list[tuple[tuple, str, float]],
+) -> list[tuple[str, tuple, float]]:
     """Convert OCR results to our format"""
     recognition_results = []
 
@@ -36,7 +36,7 @@ def convert_to_recognition_results(
         if not text.strip():
             continue
 
-        # convert ocr bbox [x1, y1, x2, y2] to our format [x, y , w, h]
+        # convert ocr bbox [x1, y1, x2, y2] to our format [x, y, w, h]
         x1, y1 = int(bbox[0][0]), int(bbox[0][1])
         x2, y2 = int(bbox[2][0]), int(bbox[2][1])
 

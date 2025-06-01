@@ -20,8 +20,8 @@ def visualize_htr_results(original_image, all_text_regions, search_results, quer
             search_regions.append((label, box, confidence))
 
         output_image = draw_bounding_boxes(
-            output_image,
-            search_regions,
+            image=output_image,
+            regions=search_regions,
             colour=HIGHLIGHT_COLOUR,
             thickness=2,
             add_labels=True,
@@ -79,7 +79,3 @@ def run_htr_demo(image_path=IMAGE_PATH, search_query="test"):
     save_output_image(final_image, output_path, show=True)
 
     return search_results
-
-
-if __name__ == "__main__":
-    run_htr_demo()
