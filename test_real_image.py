@@ -7,10 +7,10 @@ import cv2
 import json
 from pathlib import Path
 from TROCR import (
-    TrOCRProcessor,
     create_highlighted_image,
     create_search_highlighted_image,
 )
+from app.services.page_analyzer.engines.trocr_processor import TrOCRProcessor
 
 
 def main():
