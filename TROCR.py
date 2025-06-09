@@ -6,12 +6,11 @@ TrOCR - Simple OCR processor for text reading and word highlighting
 import cv2
 import numpy as np
 from pathlib import Path
-from typing import List, Tuple, Optional, Dict, Any
+from typing import List, Tuple, Optional
 from PIL import Image
 import torch
 from transformers import TrOCRProcessor as HFTrOCRProcessor, VisionEncoderDecoderModel
 from dataclasses import dataclass
-import json
 
 @dataclass
 class TextBox:
