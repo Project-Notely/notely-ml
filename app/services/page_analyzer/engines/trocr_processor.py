@@ -85,7 +85,7 @@ class TrOCRProcessor:
                         )
 
                         for word, bbox in word_boxes:
-                            confidence = 70.0  # Default confidence
+                            confidence = 100.0  # Default confidence
                             text_box = TextBox(
                                 text=word, confidence=confidence, bbox=bbox
                             )

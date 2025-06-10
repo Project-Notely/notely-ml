@@ -1,11 +1,11 @@
 {
   "full_text": "WILD POTATO SPECIAL CAN BE FOUND FROM THE SOUTHERN UNITED STATES TO SOUTHER CHILE, GENETIC STUDIES SHOW THAT THE CULTIVATED POTATO HAS A SINGLE ORIGIN, IN THE AREA OF PRESENT-DAY SOUTHERN PERU AND EXTREME NORTHWESTEN BOLLIA. POTATOES WERE DOMESTRATED FREE ABOUT 7.000-10.000 YEARS AND FROM A SHERIES IN THE S, BRAINABLE COMPLEX, MANV VARIIES OF THE ENTATE ARE CULTIVATED IN THE ANDES PERION OF SOUTH AMERICA WHERE THE SHERIES IS INDINENTS ON RECEIPT FOR RECEIPT FOR THANK YOU ************",
-  "average_confidence": 70.0,
+  "average_confidence": 100.0,
   "total_words": 79,
   "individual_words": [
     {
       "word": "WILD",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         10,
         0,
@@ -15,7 +15,7 @@
     },
     {
       "word": "POTATO",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         84,
         0,
@@ -25,7 +25,7 @@
     },
     {
       "word": "SPECIAL",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         191,
         0,
@@ -35,7 +35,7 @@
     },
     {
       "word": "CAN",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         314,
         0,
@@ -45,7 +45,7 @@
     },
     {
       "word": "BE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         372,
         0,
@@ -55,7 +55,7 @@
     },
     {
       "word": "FOUND",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         414,
         0,
@@ -65,7 +65,7 @@
     },
     {
       "word": "FROM",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         505,
         0,
@@ -75,7 +75,7 @@
     },
     {
       "word": "THE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         579,
         0,
@@ -85,7 +85,7 @@
     },
     {
       "word": "SOUTHERN",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         637,
         0,
@@ -95,7 +95,7 @@
     },
     {
       "word": "UNITED",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         776,
         0,
@@ -105,7 +105,7 @@
     },
     {
       "word": "STATES",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         10,
         50,
@@ -115,7 +115,7 @@
     },
     {
       "word": "TO",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         105,
         50,
@@ -125,7 +125,7 @@
     },
     {
       "word": "SOUTHER",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         145,
         50,
@@ -135,7 +135,7 @@
     },
     {
       "word": "CHILE,",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         254,
         50,
@@ -145,7 +145,7 @@
     },
     {
       "word": "GENETIC",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         349,
         50,
@@ -155,7 +155,7 @@
     },
     {
       "word": "STUDIES",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         458,
         50,
@@ -165,7 +165,7 @@
     },
     {
       "word": "SHOW",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         567,
         50,
@@ -175,7 +175,7 @@
     },
     {
       "word": "THAT",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         633,
         50,
@@ -185,7 +185,7 @@
     },
     {
       "word": "THE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         699,
         50,
@@ -195,7 +195,7 @@
     },
     {
       "word": "CULTIVATED",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         751,
         50,
@@ -205,7 +205,7 @@
     },
     {
       "word": "POTATO",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         10,
         100,
@@ -215,7 +215,7 @@
     },
     {
       "word": "HAS",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         108,
         100,
@@ -225,7 +225,7 @@
     },
     {
       "word": "A",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         162,
         100,
@@ -235,7 +235,7 @@
     },
     {
       "word": "SINGLE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         202,
         100,
@@ -245,7 +245,7 @@
     },
     {
       "word": "ORIGIN,",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         300,
         100,
@@ -255,7 +255,7 @@
     },
     {
       "word": "IN",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         412,
         100,
@@ -265,7 +265,7 @@
     },
     {
       "word": "THE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         452,
         100,
@@ -275,7 +275,7 @@
     },
     {
       "word": "AREA",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         506,
         100,
@@ -285,7 +285,7 @@
     },
     {
       "word": "OF",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         574,
         100,
@@ -295,7 +295,7 @@
     },
     {
       "word": "PRESENT-DAY",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         614,
         100,
@@ -305,7 +305,7 @@
     },
     {
       "word": "SOUTHERN",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         785,
         100,
@@ -315,7 +315,7 @@
     },
     {
       "word": "PERU",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         10,
         150,
@@ -325,7 +325,7 @@
     },
     {
       "word": "AND",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         94,
         150,
@@ -335,7 +335,7 @@
     },
     {
       "word": "EXTREME",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         159,
         150,
@@ -345,7 +345,7 @@
     },
     {
       "word": "NORTHWESTEN",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         298,
         150,
@@ -355,7 +355,7 @@
     },
     {
       "word": "BOLLIA.",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         511,
         150,
@@ -365,7 +365,7 @@
     },
     {
       "word": "POTATOES",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         650,
         150,
@@ -375,7 +375,7 @@
     },
     {
       "word": "WERE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         808,
         150,
@@ -385,7 +385,7 @@
     },
     {
       "word": "DOMESTRATED",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         10,
         200,
@@ -395,7 +395,7 @@
     },
     {
       "word": "FREE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         215,
         200,
@@ -405,7 +405,7 @@
     },
     {
       "word": "ABOUT",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         296,
         200,
@@ -415,7 +415,7 @@
     },
     {
       "word": "7.000-10.000",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         395,
         200,
@@ -425,7 +425,7 @@
     },
     {
       "word": "YEARS",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         618,
         200,
@@ -435,7 +435,7 @@
     },
     {
       "word": "AND",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         717,
         200,
@@ -445,7 +445,7 @@
     },
     {
       "word": "FROM",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         780,
         200,
@@ -455,7 +455,7 @@
     },
     {
       "word": "A",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         861,
         200,
@@ -465,7 +465,7 @@
     },
     {
       "word": "SHERIES",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         10,
         250,
@@ -475,7 +475,7 @@
     },
     {
       "word": "IN",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         135,
         250,
@@ -485,7 +485,7 @@
     },
     {
       "word": "THE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         178,
         250,
@@ -495,7 +495,7 @@
     },
     {
       "word": "S,",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         237,
         250,
@@ -505,7 +505,7 @@
     },
     {
       "word": "BRAINABLE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         280,
         250,
@@ -515,7 +515,7 @@
     },
     {
       "word": "COMPLEX,",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         438,
         250,
@@ -525,7 +525,7 @@
     },
     {
       "word": "MANV",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         580,
         250,
@@ -535,7 +535,7 @@
     },
     {
       "word": "VARIIES",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         656,
         250,
@@ -545,7 +545,7 @@
     },
     {
       "word": "OF",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         781,
         250,
@@ -555,7 +555,7 @@
     },
     {
       "word": "THE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         824,
         250,
@@ -565,7 +565,7 @@
     },
     {
       "word": "ENTATE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         10,
         300,
@@ -575,7 +575,7 @@
     },
     {
       "word": "ARE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         115,
         300,
@@ -585,7 +585,7 @@
     },
     {
       "word": "CULTIVATED",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         172,
         300,
@@ -595,7 +595,7 @@
     },
     {
       "word": "IN",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         341,
         300,
@@ -605,7 +605,7 @@
     },
     {
       "word": "THE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         382,
         300,
@@ -615,7 +615,7 @@
     },
     {
       "word": "ANDES",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         439,
         300,
@@ -625,7 +625,7 @@
     },
     {
       "word": "PERION",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         528,
         300,
@@ -635,7 +635,7 @@
     },
     {
       "word": "OF",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         633,
         300,
@@ -645,7 +645,7 @@
     },
     {
       "word": "SOUTH",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         674,
         300,
@@ -655,7 +655,7 @@
     },
     {
       "word": "AMERICA",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         763,
         300,
@@ -665,7 +665,7 @@
     },
     {
       "word": "WHERE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         10,
         350,
@@ -675,7 +675,7 @@
     },
     {
       "word": "THE",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         101,
         350,
@@ -685,7 +685,7 @@
     },
     {
       "word": "SHERIES",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         159,
         350,
@@ -695,7 +695,7 @@
     },
     {
       "word": "IS",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         282,
         350,
@@ -705,7 +705,7 @@
     },
     {
       "word": "INDINENTS",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         324,
         350,
@@ -715,7 +715,7 @@
     },
     {
       "word": "ON",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         480,
         350,
@@ -725,7 +725,7 @@
     },
     {
       "word": "RECEIPT",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         522,
         350,
@@ -735,7 +735,7 @@
     },
     {
       "word": "FOR",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         645,
         350,
@@ -745,7 +745,7 @@
     },
     {
       "word": "RECEIPT",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         703,
         350,
@@ -755,7 +755,7 @@
     },
     {
       "word": "FOR",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         826,
         350,
@@ -765,7 +765,7 @@
     },
     {
       "word": "THANK",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         10,
         400,
@@ -775,7 +775,7 @@
     },
     {
       "word": "YOU",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         230,
         400,
@@ -785,7 +785,7 @@
     },
     {
       "word": "************",
-      "confidence": 70.0,
+      "confidence": 100.0,
       "bbox": [
         366,
         400,
