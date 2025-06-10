@@ -1,16 +1,11 @@
-#!/usr/bin/env python3
-"""
-Test TrOCR with real image and search functionality
-"""
-
 import cv2
 import json
 from pathlib import Path
-from TROCR import (
+from app.services.page_analyzer.engines.trocr_processor import TrOCRProcessor
+from app.services.page_analyzer.utils.highlighting import (
     create_highlighted_image,
     create_search_highlighted_image,
 )
-from app.services.page_analyzer.engines.trocr_processor import TrOCRProcessor
 
 
 def main():
