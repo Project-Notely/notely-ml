@@ -78,14 +78,14 @@ class TrOCRProcessor:
                 if line_result and line_result.strip():
                     # Detect word regions in this line
                     word_regions = self._detect_word_regions_simple(line_image)
-                    
+
                     # Match OCR words with detected regions
                     words = line_result.split()
                     if words:
                         matched_boxes = self._match_words_simple(
                             words, word_regions, line_y, line_confidence
                         )
-                        
+
                         for text_box in matched_boxes:
                             all_text_boxes.append(text_box)
                             all_texts.append(text_box.text)
@@ -113,7 +113,9 @@ class TrOCRProcessor:
         except Exception as e:
             return ProcessingResult(success=False, error=str(e))
 
-    def _detect_lines_simple(self, image: np.ndarray) -> list[Tuple[np.ndarray, int, int]]:
+    def _detect_lines_simple(
+        self, image: np.ndarray
+    ) -> list[Tuple[np.ndarray, int, int]]:
         """Simple line detection using horizontal morphology"""
         # Convert to grayscale
         if len(image.shape) == 3:
@@ -123,14 +125,16 @@ class TrOCRProcessor:
 
         # Apply binary threshold
         _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        
+
         # Create horizontal kernel to connect text on the same line
         horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
         horizontal_lines = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, horizontal_kernel)
-        
+
         # Find contours of text lines
-        contours, _ = cv2.findContours(horizontal_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
+        contours, _ = cv2.findContours(
+            horizontal_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
+
         lines = []
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
@@ -141,10 +145,10 @@ class TrOCRProcessor:
                 y_end = min(image.shape[0], y + h + padding)
                 line_image = image[y_start:y_end, :]
                 lines.append((line_image, y_start, y_end - y_start))
-        
+
         # Sort lines by y-coordinate (top to bottom)
         lines.sort(key=lambda x: x[1])
-        
+
         return lines if lines else [(image, 0, image.shape[0])]
 
     def _detect_word_regions_simple(self, line_image: np.ndarray) -> list[list[int]]:
@@ -157,31 +161,37 @@ class TrOCRProcessor:
 
         # Apply binary threshold
         _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        
+
         # Create small kernel to connect letters within words
         word_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (8, 3))
         word_regions = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, word_kernel)
-        
+
         # Find contours of words
-        contours, _ = cv2.findContours(word_regions, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
+        contours, _ = cv2.findContours(
+            word_regions, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
+
         words = []
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             if w > 10 and h > 5:  # Filter out noise
                 words.append([int(x), int(y), int(w), int(h)])
-        
+
         # Sort words by x-coordinate (left to right)
         words.sort(key=lambda box: box[0])
-        
+
         return words
 
     def _match_words_simple(
-        self, words: list[str], regions: list[list[int]], line_y: int, line_confidence: float
+        self,
+        words: list[str],
+        regions: list[list[int]],
+        line_y: int,
+        line_confidence: float,
     ) -> list[TextBox]:
         """Simple word matching with better fallback"""
         text_boxes = []
-        
+
         if len(regions) == len(words):
             # Perfect match - use detected regions
             for word, region in zip(words, regions):
@@ -189,7 +199,7 @@ class TrOCRProcessor:
                 bbox = [int(x), int(line_y + y_rel), int(w), int(h)]
                 confidence = float(line_confidence * 100)
                 text_boxes.append(TextBox(text=word, confidence=confidence, bbox=bbox))
-        
+
         elif len(regions) > len(words) and len(regions) <= len(words) * 2:
             # More regions than words - merge adjacent regions
             merged_regions = self._merge_adjacent_regions(regions, len(words))
@@ -198,53 +208,59 @@ class TrOCRProcessor:
                 bbox = [int(x), int(line_y + y_rel), int(w), int(h)]
                 confidence = float(line_confidence * 100)
                 text_boxes.append(TextBox(text=word, confidence=confidence, bbox=bbox))
-        
+
         else:
             # Use intelligent estimation when detection fails
             text_boxes = self._estimate_word_positions_intelligent(
                 words, line_y, line_confidence, regions
             )
-        
+
         return text_boxes
 
-    def _merge_adjacent_regions(self, regions: list[list[int]], target_count: int) -> list[list[int]]:
+    def _merge_adjacent_regions(
+        self, regions: list[list[int]], target_count: int
+    ) -> list[list[int]]:
         """Merge adjacent regions to match word count"""
         if len(regions) <= target_count:
             return regions
-        
+
         merged = regions.copy()
-        
+
         while len(merged) > target_count:
             # Find the closest pair of regions
-            min_gap = float('inf')
+            min_gap = float("inf")
             merge_idx = 0
-            
+
             for i in range(len(merged) - 1):
                 gap = merged[i + 1][0] - (merged[i][0] + merged[i][2])
                 if gap < min_gap:
                     min_gap = gap
                     merge_idx = i
-            
+
             # Merge the pair
             region1 = merged[merge_idx]
             region2 = merged[merge_idx + 1]
-            
+
             merged_x = region1[0]
             merged_y = min(region1[1], region2[1])
             merged_w = (region2[0] + region2[2]) - region1[0]
             merged_h = max(region1[1] + region1[3], region2[1] + region2[3]) - merged_y
-            
+
             merged[merge_idx] = [merged_x, merged_y, merged_w, merged_h]
             merged.pop(merge_idx + 1)
-        
+
         return merged
 
     def _estimate_word_positions_intelligent(
-        self, words: list[str], line_y: int, line_confidence: float, detected_regions: list[list[int]]
+        self,
+        words: list[str],
+        line_y: int,
+        line_confidence: float,
+        detected_regions: list[list[int]],
     ) -> list[TextBox]:
         """Intelligent word position estimation"""
         text_boxes = []
-        
+
         if detected_regions:
             # Use detected regions as a guide
             line_width = max(r[0] + r[2] for r in detected_regions)
@@ -255,33 +271,35 @@ class TrOCRProcessor:
             line_width = 500  # Assume reasonable width
             line_height = 20
             start_x = 10
-        
+
         # Calculate average character width
         total_chars = sum(len(word) for word in words)
         if total_chars > 0:
             avg_char_width = max(8, (line_width - start_x - 20) // total_chars)
         else:
             avg_char_width = 10
-        
+
         x_offset = start_x
-        
+
         for word in words:
             # Calculate word width based on character count
             word_width = len(word) * avg_char_width
-            
+
             # Add some variation for different character types
-            if any(c in 'mwMW' for c in word):  # Wide characters
+            if any(c in "mwMW" for c in word):  # Wide characters
                 word_width = int(word_width * 1.2)
-            elif any(c in 'iIlj' for c in word):  # Narrow characters
+            elif any(c in "iIlj" for c in word):  # Narrow characters
                 word_width = int(word_width * 0.8)
-            
+
             bbox = [int(x_offset), int(line_y), int(word_width), int(line_height)]
             confidence = float(line_confidence * 100)
             text_boxes.append(TextBox(text=word, confidence=confidence, bbox=bbox))
-            
+
             # Move to next word position with spacing
-            x_offset += word_width + int(avg_char_width * 0.5)  # Add space between words
-        
+            x_offset += word_width + int(
+                avg_char_width * 0.5
+            )  # Add space between words
+
         return text_boxes
 
     def _process_single_line(self, line_image: np.ndarray) -> Tuple[str, float]:
@@ -290,8 +308,10 @@ class TrOCRProcessor:
             # Check line quality first
             line_quality = self._assess_line_quality(line_image)
             if line_quality < 0.3:  # Poor quality line
-                print(f"Warning: Low quality line detected (quality: {line_quality:.2f})")
-            
+                print(
+                    f"Warning: Low quality line detected (quality: {line_quality:.2f})"
+                )
+
             # Convert to PIL Image
             if len(line_image.shape) == 3:
                 image_rgb = cv2.cvtColor(line_image, cv2.COLOR_BGR2RGB)
@@ -299,12 +319,14 @@ class TrOCRProcessor:
                 image_rgb = line_image
 
             pil_image = Image.fromarray(image_rgb)
-            
+
             # Ensure minimum size for TrOCR
             if pil_image.size[0] < 32 or pil_image.size[1] < 16:
                 print(f"Warning: Line image too small: {pil_image.size}")
                 # Resize to minimum size
-                pil_image = pil_image.resize((max(32, pil_image.size[0]), max(16, pil_image.size[1])))
+                pil_image = pil_image.resize(
+                    (max(32, pil_image.size[0]), max(16, pil_image.size[1]))
+                )
 
             # Process with TrOCR
             pixel_values = self.processor(pil_image, return_tensors="pt").pixel_values
@@ -324,15 +346,21 @@ class TrOCRProcessor:
             scores = outputs.scores
 
             # Decode text
-            text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+            text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)[
+                0
+            ]
 
             # Calculate confidence from generation scores with improved method
-            confidence = self._calculate_confidence_improved(scores, generated_ids, text)
-            
+            confidence = self._calculate_confidence_improved(
+                scores, generated_ids, text
+            )
+
             # Apply quality-based confidence adjustment
             confidence = confidence * line_quality
 
-            print(f"Line processed: '{text[:50]}...' | Confidence: {confidence:.3f} | Quality: {line_quality:.3f}")
+            print(
+                f"Line processed: '{text[:50]}...' | Confidence: {confidence:.3f} | Quality: {line_quality:.3f}"
+            )
 
             return text.strip(), confidence
 
@@ -350,53 +378,55 @@ class TrOCRProcessor:
                 gray = line_image.copy()
 
             height, width = gray.shape
-            
+
             # Check size
             if width < 20 or height < 8:
                 return 0.1  # Too small
-            
+
             # Check if image has sufficient text content
-            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+            _, binary = cv2.threshold(
+                gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+            )
             text_pixels = np.sum(binary > 0)
             total_pixels = height * width
             text_ratio = text_pixels / total_pixels
-            
+
             if text_ratio < 0.05:  # Less than 5% text
                 return 0.2
             elif text_ratio > 0.8:  # Too much black (might be inverted or noise)
                 return 0.3
-            
+
             # Check for reasonable aspect ratio
             aspect_ratio = width / height
             if aspect_ratio < 2:  # Too square/tall
                 return 0.4
-            
+
             # Check contrast
             contrast = np.std(gray)
             if contrast < 20:  # Low contrast
                 return 0.5
-            
+
             # Calculate quality score
             quality = 1.0
-            
+
             # Penalize extreme text ratios
             if text_ratio < 0.1 or text_ratio > 0.6:
                 quality *= 0.7
-            
+
             # Reward good aspect ratios
             if 3 <= aspect_ratio <= 20:
                 quality *= 1.0
             else:
                 quality *= 0.8
-            
+
             # Reward good contrast
             if contrast > 40:
                 quality *= 1.0
             else:
                 quality *= 0.9
-            
+
             return min(quality, 1.0)
-            
+
         except Exception as e:
             print(f"Error assessing line quality: {e}")
             return 0.5  # Default middle quality
@@ -408,37 +438,43 @@ class TrOCRProcessor:
         try:
             if not scores or len(scores) == 0:
                 return 0.5  # Default confidence instead of 0
-            
+
             if not text or text.strip() == "":
                 return 0.1  # Very low confidence for empty text
 
             # Get the generated tokens (excluding the initial token)
-            generated_tokens = generated_ids[0][1:]  # Skip the first token (usually BOS)
-            
+            generated_tokens = generated_ids[0][
+                1:
+            ]  # Skip the first token (usually BOS)
+
             if len(generated_tokens) == 0:
                 return 0.1
 
             # Calculate confidence using multiple methods and take the best
-            prob_confidence = self._calculate_probability_confidence(scores, generated_tokens)
+            prob_confidence = self._calculate_probability_confidence(
+                scores, generated_tokens
+            )
             entropy_confidence = self._calculate_entropy_confidence(scores)
-            
+
             # Combine confidences with weights
             combined_confidence = 0.7 * prob_confidence + 0.3 * entropy_confidence
-            
+
             # Apply text-based adjustments
             text_confidence_factor = self._assess_text_confidence(text)
             final_confidence = combined_confidence * text_confidence_factor
-            
+
             # Clamp to reasonable range
             final_confidence = min(max(final_confidence, 0.01), 1.0)
-            
+
             return final_confidence
 
         except Exception as e:
             print(f"Error calculating confidence: {e}")
             return 0.3  # Default fallback confidence
 
-    def _calculate_probability_confidence(self, scores: tuple, generated_tokens: torch.Tensor) -> float:
+    def _calculate_probability_confidence(
+        self, scores: tuple, generated_tokens: torch.Tensor
+    ) -> float:
         """Calculate confidence based on token probabilities"""
         try:
             total_log_prob = 0.0
@@ -478,7 +514,7 @@ class TrOCRProcessor:
             for score_tensor in scores:
                 # Convert logits to probabilities
                 probs = F.softmax(score_tensor[0], dim=-1)
-                
+
                 # Calculate entropy
                 entropy = -torch.sum(probs * torch.log(probs + 1e-10))
                 total_entropy += entropy.item()
@@ -502,42 +538,47 @@ class TrOCRProcessor:
         try:
             if not text or len(text.strip()) == 0:
                 return 0.1
-            
+
             confidence_factor = 1.0
-            
+
             # Check for reasonable text patterns
             words = text.split()
-            
+
             # Penalize very short or very long sequences
             if len(words) < 1:
                 confidence_factor *= 0.3
             elif len(words) > 50:  # Very long line might be wrong
                 confidence_factor *= 0.7
-            
+
             # Check for reasonable character patterns
             alpha_chars = sum(1 for c in text if c.isalpha())
             total_chars = len(text)
-            
+
             if total_chars > 0:
                 alpha_ratio = alpha_chars / total_chars
                 if alpha_ratio < 0.3:  # Too few letters
                     confidence_factor *= 0.6
                 elif alpha_ratio > 0.95:  # Good letter ratio
                     confidence_factor *= 1.1
-            
+
             # Check for repeated characters (might indicate OCR errors)
             for char in set(text):
                 if char.isalnum() and text.count(char) > len(text) * 0.3:
                     confidence_factor *= 0.5  # Too much repetition
                     break
-            
+
             return min(confidence_factor, 1.0)
-            
+
         except Exception:
             return 1.0
 
     def _estimate_word_positions(
-        self, words: list[str], line_y: int, line_height: int, line_width: int, line_image: np.ndarray = None
+        self,
+        words: list[str],
+        line_y: int,
+        line_height: int,
+        line_width: int,
+        line_image: np.ndarray = None,
     ) -> list[Tuple[str, list[int]]]:
         """Deprecated - word positioning now handled in process_text_region"""
         # This method is kept for backward compatibility but shouldn't be used
