@@ -2,9 +2,18 @@
 .env*
 !.env.sample
 
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+*.pywz
+*.pyzw
 .venv/
 
 images/
+output/
 
 *.png
 *.jpg
