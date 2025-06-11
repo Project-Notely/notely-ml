@@ -34,13 +34,12 @@ class TrOCRProcessor:
 
     def initialize(self) -> bool:
         """Initialize the TrOCR model"""
+        if self.model_type not in self.MODELS:
+            print(
+                f"Unknown model type: {self.model_type}. Available: {list(self.MODELS.keys())}"
+            )
+            return False
         try:
-            if self.model_type not in self.MODELS:
-                print(
-                    f"Unknown model type: {self.model_type}. Available: {list(self.MODELS.keys())}"
-                )
-                return False
-
             model_name = self.MODELS[self.model_type]
             print(f"Loading TrOCR model: {model_name}")
 
