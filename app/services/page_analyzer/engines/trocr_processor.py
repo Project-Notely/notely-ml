@@ -15,7 +15,6 @@ from app.services.page_analyzer.models.models import (
 
 
 class TrOCRProcessor:
-    """Simple TrOCR processor for text recognition"""
 
     MODELS = {
         "handwritten_small": "microsoft/trocr-small-handwritten",
@@ -33,12 +32,12 @@ class TrOCRProcessor:
         self.initialized = False
 
     def initialize(self) -> bool:
-        """Initialize the TrOCR model"""
         if self.model_type not in self.MODELS:
             print(
                 f"Unknown model type: {self.model_type}. Available: {list(self.MODELS.keys())}"
             )
             return False
+
         try:
             model_name = self.MODELS[self.model_type]
             print(f"Loading TrOCR model: {model_name}")
@@ -56,12 +55,11 @@ class TrOCRProcessor:
             return False
 
     def process_text_region(self, image: np.ndarray) -> ProcessingResult:
-        """Process entire image and detect individual words"""
+        """Process entire region and detect individual words"""
         if not self.initialized:
             return ProcessingResult(success=False, error="Model not initialized")
 
         try:
-            # Use simpler line detection
             text_lines = self._detect_lines_simple(image)
 
             all_text_boxes = []
@@ -71,7 +69,7 @@ class TrOCRProcessor:
             for line_info in text_lines:
                 line_image, line_y, line_height = line_info
 
-                # Process this line with TrOCR
+                # process this line with TrOCR
                 line_result, line_confidence = self._process_single_line(line_image)
 
                 if line_result and line_result.strip():
@@ -112,24 +110,33 @@ class TrOCRProcessor:
         except Exception as e:
             return ProcessingResult(success=False, error=str(e))
 
+    #########################################################
+    # Helper functions
+    #########################################################
+
     def _detect_lines_simple(
         self, image: np.ndarray
     ) -> list[Tuple[np.ndarray, int, int]]:
-        """Simple line detection using horizontal morphology"""
-        # Convert to grayscale
+        """Simple line detection using horizontal morphology
+        Args:
+            image (np.ndarray): input image
+        Returns:
+            list[Tuple[np.ndarray, int, int]]: list of tuples containing the line image, the y-coordinate of the line, and the height of the line
+        """
+        # convert to grayscale
         if len(image.shape) == 3:
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         else:
             gray = image.copy()
 
-        # Apply binary threshold
+        # apply binary threshold
         _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-        # Create horizontal kernel to connect text on the same line
+        # create horizontal kernel to connect text on the same line
         horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
         horizontal_lines = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, horizontal_kernel)
 
-        # Find contours of text lines
+        # find contours of text lines
         contours, _ = cv2.findContours(
             horizontal_lines, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
@@ -138,14 +145,14 @@ class TrOCRProcessor:
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             if w > 50 and h > 10:  # Filter out noise
-                # Add padding
+                # add padding
                 padding = 5
                 y_start = max(0, y - padding)
                 y_end = min(image.shape[0], y + h + padding)
                 line_image = image[y_start:y_end, :]
                 lines.append((line_image, y_start, y_end - y_start))
 
-        # Sort lines by y-coordinate (top to bottom)
+        # sort lines by y-coordinate (top to bottom)
         lines.sort(key=lambda x: x[1])
 
         return lines if lines else [(image, 0, image.shape[0])]
