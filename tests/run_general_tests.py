@@ -1,46 +1,93 @@
 import sys
-import matplotlib.pyplot as plt
-import cv2
 from pathlib import Path
+from PIL import Image
+import cv2
+import numpy as np
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from app.services.page_analyzer.engines.trocr_processor import TrOCRProcessor
+from app.services.page_analyzer.engines.gemini_processor import GeminiProcessor
+from app.services.page_analyzer.utils.highlighting import (
+    create_highlighted_image,
+    save_highlighted_image,
+    create_text_summary
+)
 
-def test_detect_lines_simple():
-    """Visualize what _detect_lines_simple does"""
+def main():
+    print("🔥 Gemini + Word Highlighting Test")
+    print("=" * 50)
+
+    # Initialize processor
+    gemini_processor = GeminiProcessor()
+    if not gemini_processor.initialize():
+        print("❌ Failed to initialize processor")
+        return
+
+    # Load and process image
+    image_path = "data/paragraph_potato.png"
+    print(f"Processing image: {image_path}")
     
-    # Load image
-    image = cv2.imread("data/paragraph_potato.png")
-    print(f"Image shape: {image.shape}")
+    image = Image.open(image_path)
+    result = gemini_processor.process_text_region(image)
     
-    # Create processor and call the method
-    processor = TrOCRProcessor()
-    lines = processor._detect_lines_simple(image)
+    if not result.success:
+        print(f"❌ Processing failed: {result.error}")
+        return
+
+    ocr_result = result.result
+    print(f"✅ SUCCESS! Extracted {len(ocr_result.text_boxes)} words")
+    print(f"📝 Text: {ocr_result.full_text[:100]}...")
+    print(f"🎯 Average Confidence: {sum(box.confidence for box in ocr_result.text_boxes) / len(ocr_result.text_boxes):.1f}%")
+
+    # Convert PIL to numpy for highlighting
+    image_np = np.array(image)
+    if len(image_np.shape) == 3 and image_np.shape[2] == 3:
+        image_cv = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+    else:
+        image_cv = image_np
+
+    # Test 1: Highlight all words
+    highlighted_basic = create_highlighted_image(image_cv, ocr_result.text_boxes)
+    save_highlighted_image(highlighted_basic, "output/highlighted_basic.jpg")
+    print("✅ Saved highlighted image to output/highlighted_basic.jpg")
+
+    # Test 2: Highlight specific words with different colors for verification
+    test_words = ["potato", "Chile", "studies", "cultivated", "origin"]
+    print(f"\n🎯 Testing specific word highlighting: {test_words}")
     
-    print(f"Detected {len(lines)} lines")
-    for i, (line_image, line_y, line_height) in enumerate(lines):
-        print(f"  Line {i+1}: y={line_y}, height={line_height}")
+    # Create highlighted image with specific words in red
+    highlighted_specific = image_cv.copy()
+    found_words = []
     
-    # Show original vs lines
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+    for box in ocr_result.text_boxes:
+        if box.text in test_words:
+            x, y, w, h = box.bbox
+            # Draw red rectangle for test words
+            cv2.rectangle(highlighted_specific, (x, y), (x + w, y + h), (0, 0, 255), 3)
+            # Add text label
+            cv2.putText(highlighted_specific, f"{box.text}", (x, y - 5), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+            found_words.append(box.text)
+            print(f"  Found '{box.text}' at [{x}, {y}, {w}, {h}]")
     
-    # Original
-    ax1.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-    ax1.set_title('Original Image')
-    ax1.axis('off')
-    
-    # With detected lines
-    result = image.copy()
-    for i, (line_image, line_y, line_height) in enumerate(lines):
-        cv2.rectangle(result, (0, line_y), (image.shape[1], line_y + line_height), (255, 0, 0), 2)
-        cv2.putText(result, f'{i+1}', (10, line_y + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-    
-    ax2.imshow(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
-    ax2.set_title(f'Detected {len(lines)} Lines')
-    ax2.axis('off')
-    
-    plt.show()
+    save_highlighted_image(highlighted_specific, "output/highlighted_specific_words.jpg")
+    print(f"✅ Found {len(found_words)}/{len(test_words)} test words")
+    print("✅ Saved specific word highlighting to output/highlighted_specific_words.jpg")
+
+    # Save text summary
+    summary = create_text_summary(ocr_result)
+    with open("output/text_summary.txt", "w") as f:
+        f.write(summary)
+    print("✅ Saved text summary to output/text_summary.txt")
+
+    print("\n" + "=" * 50)
+    print("🎉 All done! Check the output folder for results.")
+
+    # Show first few detected words for debugging
+    print(f"\n📋 First 5 detected words:")
+    for i, box in enumerate(ocr_result.text_boxes[:5]):
+        x, y, w, h = box.bbox
+        print(f"  {i+1}. '{box.text}' at ({x}, {y}) - {box.confidence:.1f}%")
 
 if __name__ == "__main__":
-    test_detect_lines_simple()
+    main()

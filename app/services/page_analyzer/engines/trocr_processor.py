@@ -59,13 +59,12 @@ class TrOCRProcessor:
         if not self.initialized:
             return ProcessingResult(success=False, error="Model not initialized")
 
+        text_lines = self._detect_lines_simple(image)
+        all_text_boxes = []
+        all_texts = []
+        total_confidence = 0
+
         try:
-            text_lines = self._detect_lines_simple(image)
-
-            all_text_boxes = []
-            all_texts = []
-            total_confidence = 0
-
             for line_info in text_lines:
                 line_image, line_y, line_height = line_info
 
@@ -311,14 +310,14 @@ class TrOCRProcessor:
     def _process_single_line(self, line_image: np.ndarray) -> Tuple[str, float]:
         """Process a single line of text with TrOCR and return text with confidence"""
         try:
-            # Check line quality first
+            # check line quality
             line_quality = self._assess_line_quality(line_image)
-            if line_quality < 0.3:  # Poor quality line
+            if line_quality < 0.3:  # poor quality line
                 print(
                     f"Warning: Low quality line detected (quality: {line_quality:.2f})"
                 )
 
-            # Convert to PIL Image
+            # convert to PIL image
             if len(line_image.shape) == 3:
                 image_rgb = cv2.cvtColor(line_image, cv2.COLOR_BGR2RGB)
             else:
@@ -326,15 +325,18 @@ class TrOCRProcessor:
 
             pil_image = Image.fromarray(image_rgb)
 
-            # Ensure minimum size for TrOCR
+            # ensure minimum size for TrOCR
             if pil_image.size[0] < 32 or pil_image.size[1] < 16:
                 print(f"Warning: Line image too small: {pil_image.size}")
-                # Resize to minimum size
+                print(
+                    f"Resizing to minimum size: {max(32, pil_image.size[0])}x{max(16, pil_image.size[1])}"
+                )
+                # resize to minimum size
                 pil_image = pil_image.resize(
                     (max(32, pil_image.size[0]), max(16, pil_image.size[1]))
                 )
 
-            # Process with TrOCR
+            # process with TrOCR
             pixel_values = self.processor(pil_image, return_tensors="pt").pixel_values
             pixel_values = pixel_values.to(self.device)
 
@@ -377,7 +379,7 @@ class TrOCRProcessor:
     def _assess_line_quality(self, line_image: np.ndarray) -> float:
         """Assess the quality of a line image for OCR processing"""
         try:
-            # Convert to grayscale
+            # convert to grayscale
             if len(line_image.shape) == 3:
                 gray = cv2.cvtColor(line_image, cv2.COLOR_BGR2GRAY)
             else:
@@ -385,11 +387,11 @@ class TrOCRProcessor:
 
             height, width = gray.shape
 
-            # Check size
+            # check size
             if width < 20 or height < 8:
-                return 0.1  # Too small
+                return 0.1  # too small
 
-            # Check if image has sufficient text content
+            # check if image has sufficient text content
             _, binary = cv2.threshold(
                 gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
             )
@@ -397,35 +399,35 @@ class TrOCRProcessor:
             total_pixels = height * width
             text_ratio = text_pixels / total_pixels
 
-            if text_ratio < 0.05:  # Less than 5% text
+            if text_ratio < 0.05:  # less than 5% text
                 return 0.2
-            elif text_ratio > 0.8:  # Too much black (might be inverted or noise)
+            elif text_ratio > 0.8:  # too much black (might be inverted or noise)
                 return 0.3
 
-            # Check for reasonable aspect ratio
+            # check for reasonable aspect ratio
             aspect_ratio = width / height
-            if aspect_ratio < 2:  # Too square/tall
+            if aspect_ratio < 2:  # too square/tall
                 return 0.4
 
             # Check contrast
             contrast = np.std(gray)
-            if contrast < 20:  # Low contrast
+            if contrast < 20:  # low contrast
                 return 0.5
 
-            # Calculate quality score
+            # calculate quality score
             quality = 1.0
 
-            # Penalize extreme text ratios
+            # penalize extreme text ratios
             if text_ratio < 0.1 or text_ratio > 0.6:
                 quality *= 0.7
 
-            # Reward good aspect ratios
+            # reward good aspect ratios
             if 3 <= aspect_ratio <= 20:
                 quality *= 1.0
             else:
                 quality *= 0.8
 
-            # Reward good contrast
+            # reward good contrast
             if contrast > 40:
                 quality *= 1.0
             else:
@@ -435,7 +437,7 @@ class TrOCRProcessor:
 
         except Exception as e:
             print(f"Error assessing line quality: {e}")
-            return 0.5  # Default middle quality
+            return 0.5  # default middle quality
 
     def _calculate_confidence_improved(
         self, scores: tuple, generated_ids: torch.Tensor, text: str
