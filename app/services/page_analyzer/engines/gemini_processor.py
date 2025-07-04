@@ -12,38 +12,85 @@ import easyocr
 import numpy as np
 import cv2
 import difflib
-from typing import Optional
+from typing import Optional, Literal
+import pytesseract
+from app.services.page_analyzer.engines.trocr_processor import TrOCRProcessor
+
+try:
+    import paddleocr
+    PADDLEOCR_AVAILABLE = True
+except ImportError:
+    PADDLEOCR_AVAILABLE = False
 
 load_dotenv(dotenv_path=".env.local")
 
+OCRBackend = Literal["easyocr", "trocr", "tesseract", "paddleocr"]
 
 class GeminiProcessor:
-    def __init__(self):
+    def __init__(self, ocr_backend: OCRBackend = "easyocr"):
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
         self.model = genai.GenerativeModel("gemini-2.5-flash")
+        self.ocr_backend = ocr_backend
         self.easyocr_reader = None
+        self.trocr_processor = None
+        self.paddleocr_reader = None
         self.initialized = False
 
     def initialize(self, **kwargs) -> bool:
         try:
-            self.easyocr_reader = easyocr.Reader(
-                ["en"], gpu=kwargs.get("gpu", False), verbose=False
-            )
+            if self.ocr_backend == "easyocr":
+                self.easyocr_reader = easyocr.Reader(
+                    ["en"], gpu=kwargs.get("gpu", False), verbose=False
+                )
+            elif self.ocr_backend == "trocr":
+                self.trocr_processor = TrOCRProcessor(
+                    model_type=kwargs.get("trocr_model_type", "handwritten_base"),
+                    device=kwargs.get("device", "cpu")
+                )
+                if not self.trocr_processor.initialize():
+                    print("❌ Failed to initialize TrOCR processor")
+                    return False
+            elif self.ocr_backend == "tesseract":
+                # Test if tesseract is available
+                try:
+                    pytesseract.get_tesseract_version()
+                except pytesseract.TesseractNotFoundError:
+                    print("❌ Tesseract not found. Please install tesseract-ocr")
+                    return False
+            elif self.ocr_backend == "paddleocr":
+                if not PADDLEOCR_AVAILABLE:
+                    print("❌ PaddleOCR not available. Install with: pip install paddleocr")
+                    return False
+                self.paddleocr_reader = paddleocr.PaddleOCR(
+                    use_angle_cls=True, 
+                    lang='en'
+                )
+            
             self.initialized = True
+            print(f"✅ Initialized GeminiProcessor with {self.ocr_backend.upper()} backend")
             return True
         except Exception as e:
-            print("Error initializing GeminiProcessor: ", e)
+            print(f"❌ Error initializing GeminiProcessor: {e}")
             return False
+
+    def switch_ocr_backend(self, new_backend: OCRBackend, **kwargs) -> bool:
+        """Switch to a different OCR backend"""
+        print(f"🔄 Switching from {self.ocr_backend} to {new_backend}")
+        self.ocr_backend = new_backend
+        self.initialized = False
+        return self.initialize(**kwargs)
 
     def process_text_region(self, image: Image.Image) -> ProcessingResult:
         if not self.initialized:
             return ProcessingResult(success=False, error="Model not initialized")
 
         try:
-            # Step 1: extract text from image using Gemini
+            # Step 1: extract text from image using Gemini (ALWAYS TRUSTED)
             gemini_text = self._extract_text_with_gemini(image)
             if not gemini_text:
                 return ProcessingResult(success=False, error="No text extracted from image")
+
+            print(f"📝 Gemini extracted: '{gemini_text[:100]}{'...' if len(gemini_text) > 100 else ''}'")
 
             # Step 2: convert PIL to numpy/OpenCV format
             image_np = np.array(image)
@@ -61,10 +108,10 @@ class GeminiProcessor:
             else:
                 image_cv = image_np
 
-            # Step 3: get word positions using EasyOCR
-            word_positions = self._get_word_positions(image_cv)
+            # Step 3: get word positions using selected OCR backend
+            word_positions = self._get_word_positions_with_backend(image_cv, image)
 
-            # Step 4: match Gemini text with EasyOCR positions
+            # Step 4: match Gemini text with OCR positions
             matched_words = self._match_gemini_with_positions(gemini_text, word_positions)
 
             # Step 5: create result objects
@@ -87,32 +134,31 @@ class GeminiProcessor:
                 text_boxes=text_boxes
             )
 
+            print(f"🎯 Successfully processed {len(matched_words)} words with {self.ocr_backend.upper()}")
             return ProcessingResult(success=True, result=ocr_result)
 
         except Exception as e:
             print(f"❌ Error in process_text_region: {e}")
             return ProcessingResult(success=False, error=str(e))
 
-    ####### HELPER FUNCTIONS #######
+    ####### BACKEND-SPECIFIC WORD POSITIONING #######
 
-    def _extract_text_with_gemini(self, image: Image.Image) -> str:
-        try:
-            response = self.model.generate_content(
-                [
-                    """Extract ALL text from this image. Requirements:
-                    - Preserve exact spacing and line breaks
-                    - Include all words, numbers, and punctuation
-                    - Maintain original text order (left-to-right, top-to-bottom)
-                    - Don't add explanations, just return the extracted text""",
-                    image,
-                ]
-            )
-            return response.text.strip()
-        except Exception as e:
-            print(f"Error extracting text with Gemini: {e}")
-            return ""
+    def _get_word_positions_with_backend(self, image_cv: np.ndarray, image_pil: Image.Image) -> list[dict]:
+        """Get word positions using the selected OCR backend"""
+        if self.ocr_backend == "easyocr":
+            return self._get_word_positions_easyocr(image_cv)
+        elif self.ocr_backend == "trocr":
+            return self._get_word_positions_trocr(image_cv)
+        elif self.ocr_backend == "tesseract":
+            return self._get_word_positions_tesseract(image_cv)
+        elif self.ocr_backend == "paddleocr":
+            return self._get_word_positions_paddleocr(image_cv)
+        else:
+            print(f"❌ Unknown OCR backend: {self.ocr_backend}")
+            return []
 
-    def _get_word_positions(self, image_cv: np.ndarray) -> list[dict]:
+    def _get_word_positions_easyocr(self, image_cv: np.ndarray) -> list[dict]:
+        """Get word positions using EasyOCR (original implementation)"""
         try:
             # Get detections from EasyOCR
             results = self.easyocr_reader.readtext(
@@ -177,8 +223,165 @@ class GeminiProcessor:
             return word_detections
 
         except Exception as e:
-            print(f"❌ Error in _get_word_positions: {e}")
+            print(f"❌ Error in _get_word_positions_easyocr: {e}")
             return []
+
+    def _get_word_positions_trocr(self, image_cv: np.ndarray) -> list[dict]:
+        """Get word positions using TrOCR (great for handwriting)"""
+        try:
+            # Use TrOCR's built-in word detection
+            result = self.trocr_processor.process_text_region(image_cv)
+            
+            if not result.success:
+                print(f"❌ TrOCR processing failed: {result.error}")
+                return []
+            
+            word_detections = []
+            for text_box in result.result.text_boxes:
+                word_detections.append({
+                    'text': text_box.text,
+                    'bbox': text_box.bbox,
+                    'confidence': text_box.confidence,
+                    'center_x': text_box.bbox[0] + text_box.bbox[2] // 2,
+                    'center_y': text_box.bbox[1] + text_box.bbox[3] // 2
+                })
+            
+            print(f"🔤 TrOCR detected {len(word_detections)} words")
+            return word_detections
+
+        except Exception as e:
+            print(f"❌ Error in _get_word_positions_trocr: {e}")
+            return []
+
+    def _get_word_positions_tesseract(self, image_cv: np.ndarray) -> list[dict]:
+        """Get word positions using Tesseract (classic, reliable)"""
+        try:
+            # Convert BGR to RGB for Tesseract
+            if len(image_cv.shape) == 3:
+                image_rgb = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
+            else:
+                image_rgb = image_cv
+            
+            # Get word-level data from Tesseract
+            data = pytesseract.image_to_data(
+                image_rgb, 
+                output_type=pytesseract.Output.DICT,
+                config='--psm 6'  # Uniform block of text
+            )
+            
+            word_detections = []
+            for i in range(len(data['text'])):
+                text = data['text'][i].strip()
+                if text and int(data['conf'][i]) > 0:  # Filter out empty and low-confidence
+                    x = data['left'][i]
+                    y = data['top'][i]
+                    w = data['width'][i]
+                    h = data['height'][i]
+                    conf = int(data['conf'][i])
+                    
+                    word_detections.append({
+                        'text': text,
+                        'bbox': [x, y, w, h],
+                        'confidence': conf,
+                        'center_x': x + w // 2,
+                        'center_y': y + h // 2
+                    })
+            
+            # Sort by reading order
+            word_detections.sort(key=lambda d: (d["center_y"] // 20, d["center_x"]))
+            
+            print(f"🔤 Tesseract detected {len(word_detections)} words")
+            return word_detections
+
+        except Exception as e:
+            print(f"❌ Error in _get_word_positions_tesseract: {e}")
+            return []
+
+    def _get_word_positions_paddleocr(self, image_cv: np.ndarray) -> list[dict]:
+        """Get word positions using PaddleOCR (excellent for handwriting, latest tech)"""
+        try:
+            # PaddleOCR expects RGB format
+            if len(image_cv.shape) == 3:
+                image_rgb = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
+            else:
+                image_rgb = cv2.cvtColor(image_cv, cv2.COLOR_GRAY2RGB)
+            
+            # Run PaddleOCR
+            results = self.paddleocr_reader.ocr(image_rgb, cls=True)
+            
+            word_detections = []
+            if results and results[0]:
+                for line in results[0]:
+                    if len(line) >= 2:
+                        bbox_points = line[0]
+                        text_info = line[1]
+                        text = text_info[0] if isinstance(text_info, (list, tuple)) else str(text_info)
+                        confidence = text_info[1] if len(text_info) > 1 else 0.8
+                        
+                        # Convert bbox points to rectangle
+                        x_coords = [point[0] for point in bbox_points]
+                        y_coords = [point[1] for point in bbox_points]
+                        
+                        bbox_x = int(min(x_coords))
+                        bbox_y = int(min(y_coords))
+                        bbox_w = int(max(x_coords) - min(x_coords))
+                        bbox_h = int(max(y_coords) - min(y_coords))
+                        
+                        # Split multi-word lines
+                        words = text.strip().split()
+                        if len(words) > 1 and bbox_w > 100:  # Multi-word line
+                            # Estimate word positions within the line
+                            total_chars = sum(len(word) for word in words)
+                            x_offset = 0
+                            
+                            for word in words:
+                                word_width = int((len(word) / total_chars) * bbox_w)
+                                word_detections.append({
+                                    'text': word,
+                                    'bbox': [bbox_x + x_offset, bbox_y, word_width, bbox_h],
+                                    'confidence': confidence * 100,
+                                    'center_x': bbox_x + x_offset + word_width // 2,
+                                    'center_y': bbox_y + bbox_h // 2
+                                })
+                                x_offset += word_width + 10  # Add spacing
+                        else:
+                            # Single word
+                            word_detections.append({
+                                'text': text,
+                                'bbox': [bbox_x, bbox_y, bbox_w, bbox_h],
+                                'confidence': confidence * 100,
+                                'center_x': bbox_x + bbox_w // 2,
+                                'center_y': bbox_y + bbox_h // 2
+                            })
+            
+            # Sort by reading order
+            word_detections.sort(key=lambda d: (d["center_y"] // 20, d["center_x"]))
+            
+            print(f"🔤 PaddleOCR detected {len(word_detections)} words")
+            return word_detections
+
+        except Exception as e:
+            print(f"❌ Error in _get_word_positions_paddleocr: {e}")
+            return []
+
+    ####### EXISTING HELPER FUNCTIONS (keep all existing methods) #######
+
+    def _extract_text_with_gemini(self, image: Image.Image) -> str:
+        try:
+            response = self.model.generate_content(
+                [
+                    """Extract ALL text from this image. Requirements:
+                    - Preserve exact spacing and line breaks
+                    - Include all words, numbers, and punctuation
+                    - Maintain original text order (left-to-right, top-to-bottom)
+                    - Don't add explanations, just return the extracted text""",
+                    image,
+                ]
+            )
+            return response.text.strip()
+        except Exception as e:
+            print(f"Error extracting text with Gemini: {e}")
+            return ""
 
     def _find_actual_word_boundaries(self, line_region: np.ndarray, words: list[str], 
                                    line_x: int, line_y: int, line_confidence: float) -> list[dict]:
