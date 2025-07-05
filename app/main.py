@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import health, ocr
+from app.api.routes import health, ocr, segmentation  # Add segmentation
 
 app = FastAPI(title="Notely ML API", version="0.1.0")
 
@@ -17,6 +17,9 @@ app.add_middleware(
 # Include routes
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(ocr.router, prefix="/api/v1", tags=["ocr"])
+app.include_router(
+    segmentation.router, prefix="/api/v1", tags=["segmentation"]
+)  # Add this
 
 if __name__ == "__main__":
     import uvicorn

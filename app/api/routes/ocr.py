@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter
 from app.services.simple_ocr_service.main import OCRService
 from app.models.api_models import OCRResponse
 
@@ -7,8 +7,7 @@ ocr_service = OCRService()
 
 
 @router.post("/ocr/process", response_model=OCRResponse)
-async def process_image(file: UploadFile = File(...)):
-
+async def process_image():
     result = await ocr_service.process_image()
 
     return OCRResponse(

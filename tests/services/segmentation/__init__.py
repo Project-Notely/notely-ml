@@ -1,0 +1,3 @@
+"""
+Segmentation service tests
+""" 
