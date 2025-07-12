@@ -1,4 +1,4 @@
-# 🎉 Poetry Setup Complete! 
+# 🎉 Poetry Setup Complete!
 
 Your notely-ml project now has a complete Poetry-based development environment with comprehensive testing, linting, formatting, and type checking.
 
@@ -136,4 +136,4 @@ poetry run test-specific tests/repositories/drawing_repository.py
 
 ---
 
-**🎉 Your drawing repository is now production-ready with enterprise-grade development practices!** 
+**🎉 Your drawing repository is now production-ready with enterprise-grade development practices!**

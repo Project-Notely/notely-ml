@@ -3,7 +3,6 @@
 
 import subprocess
 import sys
-from pathlib import Path
 
 
 def run_command(cmd: list[str], description: str = "") -> int:

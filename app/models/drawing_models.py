@@ -15,9 +15,7 @@ class Point(BaseModel):
 
     x: float = Field(..., description="X coordinate of the point")
     y: float = Field(..., description="Y coordinate of the point")
-    pressure: float | None = Field(
-        None, description="Pressure applied at this point"
-    )
+    pressure: float | None = Field(None, description="Pressure applied at this point")
     timestamp: int | None = Field(
         None, description="Unix timestamp when point was created"
     )
@@ -117,9 +115,7 @@ class SaveDrawingRequest(BaseModel):
     """Request model for saving a drawing."""
 
     drawing: DrawingData = Field(..., description="The drawing data to save")
-    user_id: str | None = Field(
-        None, description="ID of the user saving the drawing"
-    )
+    user_id: str | None = Field(None, description="ID of the user saving the drawing")
     title: str | None = Field(None, description="Title of the drawing")
     description: str | None = Field(None, description="Description of the drawing")
 

@@ -58,7 +58,7 @@ def test_ocr_backends_standalone():
         description = backend_config["description"]
         kwargs = backend_config["kwargs"]
 
-        print(f"\n" + "=" * 60)
+        print("\n" + "=" * 60)
         print(f"🔄 Testing {backend_name.upper()}: {description}")
         print("=" * 60)
 
@@ -92,7 +92,7 @@ def test_ocr_backends_standalone():
                     text = word_pos.get("text", "N/A")
                     confidence = word_pos.get("confidence", 0)
                     bbox = word_pos.get("bbox", [0, 0, 0, 0])
-                    print(f"  {i+1}. '{text}' - {confidence:.1f}% at {bbox}")
+                    print(f"  {i + 1}. '{text}' - {confidence:.1f}% at {bbox}")
 
                 # Create text boxes for highlighting
                 from app.services.page_analyzer.models.models import TextBox
@@ -157,7 +157,7 @@ def test_ocr_backends_standalone():
             )
 
     # Print comparison summary
-    print(f"\n" + "=" * 80)
+    print("\n" + "=" * 80)
     print("📊 OCR BACKEND WORD DETECTION COMPARISON")
     print("=" * 80)
 
@@ -176,7 +176,7 @@ def test_ocr_backends_standalone():
             )
 
     # Analysis and recommendations
-    print(f"\n🎯 ANALYSIS:")
+    print("\n🎯 ANALYSIS:")
     if successful_results:
         best_count = max(r["word_count"] for r in successful_results)
         best_backend = next(
@@ -194,7 +194,7 @@ def test_ocr_backends_standalone():
             f"• Highest confidence: {best_conf_backend['backend'].upper()} ({best_conf:.1f}%)"
         )
 
-    print(f"\n💡 RECOMMENDATIONS FOR MESSY HANDWRITING:")
+    print("\n💡 RECOMMENDATIONS FOR MESSY HANDWRITING:")
     print("1. 🏆 TrOCR - Specifically trained for handwritten text")
     print(
         "2. 🌟 PaddleOCR - Latest deep learning technology, great for complex scenarios"
@@ -202,7 +202,7 @@ def test_ocr_backends_standalone():
     print("3. 🔧 Tesseract - Classic choice, reliable for clear printed text")
     print("4. 🔄 EasyOCR - Good general purpose, but weaker on handwriting")
 
-    print(f"\n📋 SETUP INSTRUCTIONS:")
+    print("\n📋 SETUP INSTRUCTIONS:")
     print("To use with Gemini text extraction (recommended):")
     print("1. Get a Gemini API key from https://aistudio.google.com/apikey")
     print(
@@ -272,7 +272,7 @@ def test_gemini_processor_with_backends():
         description = backend_config["description"]
         kwargs = backend_config["kwargs"]
 
-        print(f"\n" + "=" * 60)
+        print("\n" + "=" * 60)
         print(f"🔄 Testing {backend_name.upper()}: {description}")
         print("=" * 60)
 
@@ -339,7 +339,7 @@ def test_gemini_processor_with_backends():
             )
 
     # Print comparison summary
-    print(f"\n" + "=" * 80)
+    print("\n" + "=" * 80)
     print("📊 BACKEND COMPARISON SUMMARY")
     print("=" * 80)
 
@@ -355,7 +355,7 @@ def test_gemini_processor_with_backends():
             )
 
     # Recommendations
-    print(f"\n🎯 RECOMMENDATIONS:")
+    print("\n🎯 RECOMMENDATIONS:")
     print("For messy handwriting and unclear text:")
     print("1. TrOCR - Best for handwritten text recognition")
     print("2. PaddleOCR - Latest technology, excellent for complex scenarios")
@@ -367,7 +367,7 @@ def test_gemini_processor_with_backends():
 
 def test_backend_switching():
     """Test switching between backends on the same processor"""
-    print(f"\n" + "=" * 60)
+    print("\n" + "=" * 60)
     print("🔄 Testing Backend Switching")
     print("=" * 60)
 
@@ -424,7 +424,7 @@ if __name__ == "__main__":
     test_backend_switching()
 
     print(
-        f"\n✅ Testing complete! Check the highlighted output images to see the differences."
+        "\n✅ Testing complete! Check the highlighted output images to see the differences."
     )
     print(
         "💡 For best results with messy handwriting, use TrOCR or PaddleOCR backends."

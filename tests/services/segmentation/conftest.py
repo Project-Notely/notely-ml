@@ -2,13 +2,12 @@
 Pytest configuration and fixtures for segmentation tests
 """
 
-import json
 import os
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Dict, Generator
+from typing import Any
 
-import numpy as np
 import pytest
 from PIL import Image
 
@@ -45,7 +44,7 @@ def sample_image() -> Generator[Path, None, None]:
     image = Image.new("RGB", (width, height), color="white")
 
     # Add some colored rectangles to simulate different document elements
-    from PIL import ImageDraw, ImageFont
+    from PIL import ImageDraw
 
     draw = ImageDraw.Draw(image)
 
@@ -230,7 +229,9 @@ def mock_unstructured_elements():
     """
 
     class MockElement:
-        def __init__(self, text: str, category: str, metadata: Dict[str, Any] = None):
+        def __init__(
+            self, text: str, category: str, metadata: dict[str, Any] | None = None
+        ):
             self.text = text
             self.category = category
             self.metadata = metadata or {}

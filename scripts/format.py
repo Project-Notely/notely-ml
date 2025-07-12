@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Formatting scripts for Poetry."""
+"""Formatting scripts for Poetry using ruff only."""
 
 import subprocess
 import sys
@@ -20,22 +20,18 @@ def run_command(cmd: list[str], description: str = "") -> int:
 
 
 def main() -> int:
-    """Format code with black and isort."""
-    print("🚀 Formatting code...")
+    """Format code with ruff only (replaces black and isort)."""
+    print("🚀 Formatting code with ruff...")
 
-    # First run isort to sort imports
-    isort_cmd = ["isort", "app/", "tests/", "scripts/"]
-    isort_exit = run_command(isort_cmd, "Sorting imports with isort")
+    # Use ruff for formatting (replaces black and isort)
+    ruff_format_cmd = ["ruff", "format", "app/", "tests/", "scripts/"]
+    ruff_format_exit = run_command(ruff_format_cmd, "Formatting code with ruff")
 
-    # Then run black to format code
-    black_cmd = ["black", "app/", "tests/", "scripts/"]
-    black_exit = run_command(black_cmd, "Formatting code with black")
+    # Use ruff for auto-fixing linting issues
+    ruff_fix_cmd = ["ruff", "check", "--fix", "app/", "tests/", "scripts/"]
+    ruff_fix_exit = run_command(ruff_fix_cmd, "Auto-fixing issues with ruff")
 
-    # Run ruff formatting as well
-    ruff_cmd = ["ruff", "format", "app/", "tests/", "scripts/"]
-    ruff_exit = run_command(ruff_cmd, "Formatting code with ruff")
-
-    if isort_exit == 0 and black_exit == 0 and ruff_exit == 0:
+    if ruff_format_exit == 0 and ruff_fix_exit == 0:
         print("✅ Code formatting completed successfully!")
         return 0
     else:
@@ -47,19 +43,23 @@ def check() -> int:
     """Check if code is properly formatted without making changes."""
     print("🚀 Checking code formatting...")
 
-    # Check isort
-    isort_cmd = ["isort", "app/", "tests/", "scripts/", "--check-only", "--diff"]
-    isort_exit = run_command(isort_cmd, "Checking import sorting")
-
-    # Check black
-    black_cmd = ["black", "app/", "tests/", "scripts/", "--check", "--diff"]
-    black_exit = run_command(black_cmd, "Checking code formatting")
-
     # Check ruff formatting
-    ruff_cmd = ["ruff", "format", "app/", "tests/", "scripts/", "--check", "--diff"]
-    ruff_exit = run_command(ruff_cmd, "Checking ruff formatting")
+    ruff_format_cmd = [
+        "ruff",
+        "format",
+        "app/",
+        "tests/",
+        "scripts/",
+        "--check",
+        "--diff",
+    ]
+    ruff_format_exit = run_command(ruff_format_cmd, "Checking ruff formatting")
 
-    if isort_exit == 0 and black_exit == 0 and ruff_exit == 0:
+    # Check ruff linting
+    ruff_check_cmd = ["ruff", "check", "app/", "tests/", "scripts/"]
+    ruff_check_exit = run_command(ruff_check_cmd, "Checking ruff linting")
+
+    if ruff_format_exit == 0 and ruff_check_exit == 0:
         print("✅ Code is properly formatted!")
         return 0
     else:
@@ -83,18 +83,17 @@ def format_file() -> int:
         print(f"❌ Not a Python file: {file_path}")
         return 1
 
-    print(f"🚀 Formatting {file_path}...")
-
-    # Format with isort
-    isort_exit = run_command(["isort", file_path], "Sorting imports")
-
-    # Format with black
-    black_exit = run_command(["black", file_path], "Formatting code")
+    print(f"🚀 Formatting {file_path} with ruff...")
 
     # Format with ruff
-    ruff_exit = run_command(["ruff", "format", file_path], "Ruff formatting")
+    ruff_format_exit = run_command(["ruff", "format", file_path], "Formatting code")
 
-    if isort_exit == 0 and black_exit == 0 and ruff_exit == 0:
+    # Auto-fix with ruff
+    ruff_fix_exit = run_command(
+        ["ruff", "check", "--fix", file_path], "Auto-fixing issues"
+    )
+
+    if ruff_format_exit == 0 and ruff_fix_exit == 0:
         print(f"✅ {file_path} formatted successfully!")
         return 0
     else:

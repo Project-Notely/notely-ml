@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class WordMatch:
-    """Represents a matched word with its bounding box"""
+    """Represents a matched word with its bounding box."""
 
     word: str
     bbox: list[int]
@@ -15,7 +14,7 @@ class WordMatch:
 
 @dataclass
 class TextBox:
-    """Represents a detected text box"""
+    """Represents a detected text box."""
 
     text: str
     confidence: float
@@ -24,7 +23,7 @@ class TextBox:
 
 @dataclass
 class OCRResult:
-    """OCR processing result"""
+    """OCR processing result."""
 
     full_text: str
     average_confidence: float
@@ -34,8 +33,8 @@ class OCRResult:
 
 @dataclass
 class ProcessingResult:
-    """Complete processing result"""
+    """Complete processing result."""
 
     success: bool
-    result: Optional[OCRResult] = None
-    error: Optional[str] = None
+    result: OCRResult | None = None
+    error: str | None = None

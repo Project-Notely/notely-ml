@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -15,7 +15,7 @@ from ..models.results import ProcessingResult
 
 
 class TrOCRProcessor(OCRProcessor):
-    """TrOCR OCR processor"""
+    """TrOCR OCR processor."""
 
     MODELS = {
         "handwritten_small": TrOCRConfig(
@@ -65,8 +65,7 @@ class TrOCRProcessor(OCRProcessor):
         self.confidence_threshold = 0.1
 
     def initialize(self, **kwargs) -> bool:
-        """
-        Initialize the TrOCR processor
+        """Initialize the TrOCR processor.
 
         Args:
             model_type: Override model type
@@ -119,23 +118,25 @@ class TrOCRProcessor(OCRProcessor):
     def process_text_region(
         self,
         image_region: np.ndarray,
-        preprocessing_options: Optional[Dict[str, Any]] = None,
+        preprocessing_options: dict[str, Any] | None = None,
     ) -> ProcessingResult:
-        """
-        Process a text region using TrOCR
+        """Process a text region using TrOCR.
 
         Args:
             image_region: Image region to process
             preprocessing_options: Optional preprocessing parameters
 
         Returns:
-            ProcessingResult with OCRResult containing detected text and estimated locations
+            ProcessingResult with OCRResult containing detected text and estimated
+            locations
         """
         if not self.initialized:
             return ProcessingResult(
                 success=False,
                 result=None,
-                error_message="TrOCR processor not initialized. Call initialize() first.",
+                error_message=(
+                    "TrOCR processor not initialized. Call initialize() first."
+                ),
             )
 
         try:
@@ -150,7 +151,8 @@ class TrOCRProcessor(OCRProcessor):
             # Generate text with confidence estimation
             text_result = self._generate_text_with_confidence(pil_image)
 
-            # Create text boxes (TrOCR doesn't provide word-level bounding boxes by default)
+            # Create text boxes (TrOCR doesn't provide word-level bounding boxes by
+            # default)
             # We'll estimate them or return the full region as one box
             text_boxes = self._create_text_boxes(
                 text_result["text"], text_result["confidence"], image_region.shape
@@ -188,14 +190,13 @@ class TrOCRProcessor(OCRProcessor):
             return ProcessingResult(
                 success=False,
                 result=None,
-                error_message=f"TrOCR processing failed: {str(e)}",
+                error_message=f"TrOCR processing failed: {e!s}",
             )
 
     def _preprocess_image(
-        self, image: np.ndarray, options: Optional[Dict[str, Any]] = None
+        self, image: np.ndarray, options: dict[str, Any] | None = None
     ) -> np.ndarray:
-        """
-        Preprocess image for TrOCR (minimal preprocessing needed)
+        """Preprocess image for TrOCR (minimal preprocessing needed).
 
         Args:
             image: Input image
@@ -238,15 +239,14 @@ class TrOCRProcessor(OCRProcessor):
         return processed
 
     def _numpy_to_pil(self, image: np.ndarray) -> Image.Image:
-        """Convert numpy array to PIL Image"""
+        """Convert numpy array to PIL Image."""
         if len(image.shape) == 3:
             return Image.fromarray(image)
         else:
             return Image.fromarray(image).convert("RGB")
 
-    def _generate_text_with_confidence(self, pil_image: Image.Image) -> Dict[str, Any]:
-        """
-        Generate text with confidence estimation
+    def _generate_text_with_confidence(self, pil_image: Image.Image) -> dict[str, Any]:
+        """Generate text with confidence estimation.
 
         Args:
             pil_image: PIL Image to process
@@ -283,8 +283,7 @@ class TrOCRProcessor(OCRProcessor):
         }
 
     def _estimate_confidence(self, generation_output) -> float:
-        """
-        Estimate confidence from generation scores
+        """Estimate confidence from generation scores.
 
         Args:
             generation_output: Output from model.generate()
@@ -327,10 +326,9 @@ class TrOCRProcessor(OCRProcessor):
         confidence: float,
         image_shape: tuple,
     ) -> list[TextBox]:
-        """
-        Create text boxes from recognized text
+        """Create text boxes from recognized text
         Note: TrOCR doesn't provide word-level localization by default
-        This creates a single box covering the entire region
+        This creates a single box covering the entire region.
 
         Args:
             text: Recognized text
@@ -380,8 +378,7 @@ class TrOCRProcessor(OCRProcessor):
         return text_boxes
 
     def get_supported_languages(self) -> list[str]:
-        """
-        Get list of supported languages
+        """Get list of supported languages.
 
         Returns:
             List of supported languages (TrOCR supports multiple languages)
@@ -395,7 +392,7 @@ class TrOCRProcessor(OCRProcessor):
         ]
 
     def cleanup(self) -> None:
-        """Clean up resources used by the TrOCR processor"""
+        """Clean up resources used by the TrOCR processor."""
         try:
             if hasattr(self, "model") and self.model is not None:
                 # Move model off GPU if it was on GPU

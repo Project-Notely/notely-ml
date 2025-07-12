@@ -1,20 +1,18 @@
 from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import numpy as np
 from PIL import Image
 
-from app.services.page_analyzer.models.models import DocumentElement, ProcessingResult
+from app.services.page_analyzer.models.models import ProcessingResult
 
 
 class OCRProcessor(ABC):
-    """Abstract base class for OCR processors"""
+    """Abstract base class for OCR processors."""
 
     @abstractmethod
     def initialize(self, **kwargs) -> bool:
-        """
-        Initialize the OCR processor
+        """Initialize the OCR processor.
 
         Returns:
             True if initialization successful, False otherwise
@@ -25,13 +23,14 @@ class OCRProcessor(ABC):
     def process_text_region(
         self,
         image_region: np.ndarray,
-        preprocessing_options: Optional[Dict[str, Any]] = None,
+        preprocessing_options: dict[str, Any] | None = None,
     ) -> ProcessingResult:
-        """Process a text region of an image
+        """Process a text region of an image.
 
         Args:
             image_region (np.ndarray): The image region to process
-            preprocessing_options (Optional[Dict[str, Any]], optional): Optional preprocessing options
+            preprocessing_options (Optional[Dict[str, Any]], optional): Optional
+                preprocessing options
 
         Returns:
             ProcessingResult: recognized text and confidence
@@ -40,7 +39,7 @@ class OCRProcessor(ABC):
 
     @abstractmethod
     def get_supported_languages(self) -> list[str]:
-        """Get list of supported languages
+        """Get list of supported languages.
 
         Returns:
             list[str]: List of supported languages
@@ -49,16 +48,16 @@ class OCRProcessor(ABC):
 
     @abstractmethod
     def cleanup(self) -> None:
-        """Clean up resources"""
+        """Clean up resources."""
         pass
 
 
 class ImageClassifier(ABC):
-    """Abstract interface for image classifiers"""
+    """Abstract interface for image classifiers."""
 
     @abstractmethod
     def initialize(self, **kwargs) -> bool:
-        """Initialize the image classifier
+        """Initialize the image classifier.
 
         Returns:
             bool: True if initialization successful, False otherwise
@@ -67,9 +66,9 @@ class ImageClassifier(ABC):
 
     @abstractmethod
     def classify_image(
-        self, image: Union[Image.Image, np.ndarray], top_k: int = 1
+        self, image: Image.Image | np.ndarray, top_k: int = 1
     ) -> ProcessingResult:
-        """Classify an image
+        """Classify an image.
 
         Args:
             image (Union[Image.Image, np.ndarray]): The image to classify
@@ -82,28 +81,28 @@ class ImageClassifier(ABC):
 
     @abstractmethod
     def get_class_names(self) -> list[str]:
-        """Get list of supported class names"""
+        """Get list of supported class names."""
         pass
 
     @abstractmethod
     def cleanup(self) -> None:
-        """Clean up resources"""
+        """Clean up resources."""
         pass
 
 
 class TableProcessor(ABC):
-    """Abstract interface for table processing"""
+    """Abstract interface for table processing."""
 
     @abstractmethod
     def initialize(self, **kwargs) -> bool:
-        """Initialize the table processor"""
+        """Initialize the table processor."""
         pass
 
     @abstractmethod
     def process_table(
         self, image_region: np.ndarray, extract_structure: bool = True
     ) -> ProcessingResult:
-        """Process a table region
+        """Process a table region.
 
         Args:
             image_region: Image region containing table

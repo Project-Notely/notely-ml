@@ -1,9 +1,9 @@
+import os
+import urllib.parse
+
+from dotenv import load_dotenv
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-
-import os
-from dotenv import load_dotenv
-import urllib.parse
 
 load_dotenv(dotenv_path=".env.local")
 

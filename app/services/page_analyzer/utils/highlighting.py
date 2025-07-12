@@ -1,17 +1,14 @@
 import os
-from pathlib import Path
-from typing import Optional, Tuple
 
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from app.services.page_analyzer.models.models import OCRResult, TextBox
-from app.services.page_analyzer.utils.search import search_text_in_image
 
 
-def get_highlight_color(confidence: float) -> Tuple[int, int, int]:
-    """Get highlight color based on confidence level (BGR format)"""
+def get_highlight_color(confidence: float) -> tuple[int, int, int]:
+    """Get highlight color based on confidence level (BGR format)."""
     if confidence >= 80:
         return (0, 255, 0)  # Green - high confidence
     elif confidence >= 60:
@@ -26,10 +23,10 @@ def save_highlighted_image(
     image: Image.Image,
     text_boxes: list[TextBox],
     output_path: str,
-    title: str = None,
+    title: str | None = None,
     quality: int = 95,
 ) -> bool:
-    """Enhanced save highlighted image function with PIL support and title
+    """Enhanced save highlighted image function with PIL support and title.
 
     Args:
         image: PIL Image
@@ -105,14 +102,14 @@ def save_highlighted_image(
 def create_highlighted_image(
     image: np.ndarray,
     text_boxes: list[TextBox],
-    highlight_color: Tuple[int, int, int] = (0, 255, 0),
+    highlight_color: tuple[int, int, int] = (0, 255, 0),
     highlight_opacity: float = 0.3,
-    border_colour: Tuple[int, int, int] = (0, 255, 0),
+    border_colour: tuple[int, int, int] = (0, 255, 0),
     border_thickness: int = 2,
     show_text: bool = True,
     show_confidence: bool = True,
 ) -> np.ndarray:
-    """Create highlighted image with detected text boxes
+    """Create highlighted image with detected text boxes.
 
     Args:
         image: input image (BGR format)
@@ -197,7 +194,7 @@ def save_highlighted_image_cv2(
     output_path: str,
     quality: int = 100,
 ) -> bool:
-    """Save highlighted image to file (original OpenCV version)
+    """Save highlighted image to file (original OpenCV version).
 
     Args:
         image: input image (BGR format)
@@ -226,7 +223,7 @@ def save_highlighted_image_cv2(
 
 
 def create_text_summary(ocr_result: OCRResult) -> str:
-    """Create a text summary of the OCR results
+    """Create a text summary of the OCR results.
 
     Args:
         ocr_result: OCR processing result

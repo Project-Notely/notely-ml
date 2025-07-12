@@ -8,21 +8,13 @@ import os
 import tempfile
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
-from typing import List
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
-import numpy as np
 import psutil
 import pytest
 from PIL import Image
 
-from app.models.segmentation_models import (
-    DocumentSegment,
-    SegmentationResult,
-    SegmentType,
-)
+from app.models.segmentation_models import SegmentationResult
 from app.services.segmentation_service import SegmentationService
 
 
@@ -65,7 +57,7 @@ class TestSegmentationServicePerformance:
             num_documents = 5
             start_time = time.time()
 
-            for i in range(num_documents):
+            for _i in range(num_documents):
                 result = await segmentation_service.segment_document(sample_text_file)
                 assert result.success is True
 
@@ -165,7 +157,7 @@ class TestSegmentationServicePerformance:
 
             # Process multiple documents
             async def process_multiple():
-                for i in range(10):
+                for _i in range(10):
                     await segmentation_service.segment_document(sample_text_file)
 
             asyncio.run(process_multiple())
@@ -189,7 +181,7 @@ class TestSegmentationServicePerformance:
 
             memory_measurements = []
 
-            for i in range(5):
+            for _i in range(5):
                 gc.collect()
                 memory_before = process.memory_info().rss
 
@@ -360,7 +352,7 @@ class TestSegmentationServicePerformance:
             successful_results = [
                 r for r in results if isinstance(r, SegmentationResult) and r.success
             ]
-            failed_results = [
+            [
                 r
                 for r in results
                 if not (isinstance(r, SegmentationResult) and r.success)
@@ -398,7 +390,7 @@ class TestSegmentationServicePerformance:
             threads = []
             num_threads = 10
 
-            for i in range(num_threads):
+            for _i in range(num_threads):
                 thread = threading.Thread(target=process_document)
                 threads.append(thread)
                 thread.start()
@@ -460,7 +452,7 @@ class TestSegmentationServiceStress:
                 # Create progressively larger images
                 size = 500 + i * 100  # Start at 500x500, grow to 2400x2400
                 large_image = Image.new(
-                    "RGB", (size, size), color=f"rgb({i*10}, {i*10}, {i*10})"
+                    "RGB", (size, size), color=f"rgb({i * 10}, {i * 10}, {i * 10})"
                 )
 
                 result = await segmentation_service.segment_image(large_image)
@@ -660,6 +652,6 @@ def test_performance_benchmark_suite(sample_text_file, sample_image):
         summary = benchmark.get_summary()
 
         # All operations should complete in reasonable time
-        for operation, metrics in summary.items():
+        for _operation, metrics in summary.items():
             assert metrics["avg_duration"] < 10.0  # Less than 10 seconds
             assert metrics["memory_usage_mb"] < 100  # Less than 100MB memory increase

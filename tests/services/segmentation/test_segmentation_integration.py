@@ -2,25 +2,13 @@
 Integration tests for segmentation API endpoints
 """
 
-import asyncio
-import io
-import json
 import os
-import tempfile
-from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
-from fastapi import UploadFile
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.models.segmentation_models import (
-    BoundingBox,
-    DocumentSegment,
-    SegmentationResult,
-    SegmentType,
-)
 
 
 class TestSegmentationAPIIntegration:
@@ -178,7 +166,6 @@ class TestSegmentationAPIIntegration:
     def test_segment_endpoint_concurrent_requests(self, client, sample_file_content):
         """Test concurrent requests to segmentation endpoint"""
         import threading
-        import time
 
         results = []
 
@@ -192,7 +179,7 @@ class TestSegmentationAPIIntegration:
 
         # Create multiple threads
         threads = []
-        for i in range(3):
+        for _i in range(3):
             thread = threading.Thread(target=make_request)
             threads.append(thread)
             thread.start()
@@ -253,7 +240,7 @@ class TestSegmentationAPIResponseFormat:
                     assert field in segment
 
                 # Check if bbox is present and has correct structure
-                if "bbox" in segment and segment["bbox"]:
+                if segment.get("bbox"):
                     bbox_fields = ["x", "y", "width", "height"]
                     for field in bbox_fields:
                         assert field in segment["bbox"]
@@ -364,7 +351,6 @@ class TestSegmentationAPIPerformance:
 
     def test_segment_memory_usage(self, client):
         """Test memory usage during processing"""
-        import os
 
         import psutil
 
@@ -436,7 +422,7 @@ class TestSegmentationAPIEdgeCases:
 
     def test_segment_unicode_content(self, client):
         """Test segmentation of unicode content"""
-        unicode_content = "测试文档内容 with émojis 🚀".encode("utf-8")
+        unicode_content = "测试文档内容 with émojis 🚀".encode()
 
         with patch("app.services.segmentation_service.partition") as mock_partition:
             mock_partition.return_value = []

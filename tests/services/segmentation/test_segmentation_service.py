@@ -5,19 +5,13 @@ Comprehensive unit tests for SegmentationService
 import asyncio
 import os
 import tempfile
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
 from PIL import Image
 
-from app.models.segmentation_models import (
-    BoundingBox,
-    DocumentSegment,
-    SegmentationResult,
-    SegmentType,
-)
+from app.models.segmentation_models import SegmentationResult, SegmentType
 from app.services.segmentation_service import SegmentationService
 
 
@@ -535,7 +529,7 @@ class TestSegmentationServicePerformance:
         # Process multiple images to test memory cleanup
         for i in range(3):
             test_image = Image.new(
-                "RGB", (500, 500), color=f"rgb({i*80}, {i*80}, {i*80})"
+                "RGB", (500, 500), color=f"rgb({i * 80}, {i * 80}, {i * 80})"
             )
 
             with patch("app.services.segmentation_service.partition") as mock_partition:
@@ -551,11 +545,10 @@ class TestSegmentationServicePerformance:
     @pytest.mark.asyncio
     async def test_concurrent_processing(self, segmentation_service):
         """Test concurrent processing of multiple documents"""
-        import asyncio
 
         # Create multiple test images
         test_images = [
-            Image.new("RGB", (100, 100), color=f"rgb({i*50}, {i*50}, {i*50})")
+            Image.new("RGB", (100, 100), color=f"rgb({i * 50}, {i * 50}, {i * 50})")
             for i in range(3)
         ]
 

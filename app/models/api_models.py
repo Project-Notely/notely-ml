@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel
 
 
@@ -7,7 +5,7 @@ class OCRResponse(BaseModel):
     success: bool
     text: str
     confidence: float
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class TextBox(BaseModel):

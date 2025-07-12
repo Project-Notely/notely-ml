@@ -1,6 +1,6 @@
 import difflib
 import os
-from typing import Literal, Optional
+from typing import Literal
 
 import cv2
 import easyocr
@@ -64,7 +64,8 @@ class GeminiProcessor:
             elif self.ocr_backend == "paddleocr":
                 if not PADDLEOCR_AVAILABLE:
                     print(
-                        "❌ PaddleOCR not available. Install with: pip install paddleocr"
+                        "❌ PaddleOCR not available. "
+                        "Install with: pip install paddleocr"
                     )
                     return False
                 self.paddleocr_reader = paddleocr.PaddleOCR(
@@ -73,7 +74,8 @@ class GeminiProcessor:
 
             self.initialized = True
             print(
-                f"✅ Initialized GeminiProcessor with {self.ocr_backend.upper()} backend"
+                f"✅ Initialized GeminiProcessor with {self.ocr_backend.upper()} "
+                f"backend"
             )
             return True
         except Exception as e:
@@ -81,7 +83,7 @@ class GeminiProcessor:
             return False
 
     def switch_ocr_backend(self, new_backend: OCRBackend, **kwargs) -> bool:
-        """Switch to a different OCR backend"""
+        """Switch to a different OCR backend."""
         print(f"🔄 Switching from {self.ocr_backend} to {new_backend}")
         self.ocr_backend = new_backend
         self.initialized = False
@@ -100,7 +102,8 @@ class GeminiProcessor:
                 )
 
             print(
-                f"📝 Gemini extracted: '{gemini_text[:100]}{'...' if len(gemini_text) > 100 else ''}'"
+                f"📝 Gemini extracted: '{gemini_text[:100]}"
+                f"{'...' if len(gemini_text) > 100 else ''}'"
             )
 
             # Step 2: convert PIL to numpy/OpenCV format
@@ -152,7 +155,8 @@ class GeminiProcessor:
             )
 
             print(
-                f"🎯 Successfully processed {len(matched_words)} words with {self.ocr_backend.upper()}"
+                f"🎯 Successfully processed {len(matched_words)} words with "
+                f"{self.ocr_backend.upper()}"
             )
             return ProcessingResult(success=True, result=ocr_result)
 
@@ -165,7 +169,7 @@ class GeminiProcessor:
     def _get_word_positions_with_backend(
         self, image_cv: np.ndarray, image_pil: Image.Image
     ) -> list[dict]:
-        """Get word positions using the selected OCR backend"""
+        """Get word positions using the selected OCR backend."""
         if self.ocr_backend == "easyocr":
             return self._get_word_positions_easyocr(image_cv)
         elif self.ocr_backend == "trocr":
@@ -179,7 +183,7 @@ class GeminiProcessor:
             return []
 
     def _get_word_positions_easyocr(self, image_cv: np.ndarray) -> list[dict]:
-        """Get word positions using EasyOCR (original implementation)"""
+        """Get word positions using EasyOCR (original implementation)."""
         try:
             # Get detections from EasyOCR
             results = self.easyocr_reader.readtext(
@@ -193,7 +197,7 @@ class GeminiProcessor:
             # Split lines into individual words
             word_detections = []
 
-            for i, result in enumerate(results):
+            for _i, result in enumerate(results):
                 try:
                     # Handle different EasyOCR return formats
                     if len(result) == 3:
@@ -239,7 +243,7 @@ class GeminiProcessor:
                             }
                         )
 
-                except Exception as e:
+                except Exception:
                     continue
 
             # Sort by reading order
@@ -252,7 +256,7 @@ class GeminiProcessor:
             return []
 
     def _get_word_positions_trocr(self, image_cv: np.ndarray) -> list[dict]:
-        """Get word positions using TrOCR (great for handwriting)"""
+        """Get word positions using TrOCR (great for handwriting)."""
         try:
             # Use TrOCR's built-in word detection
             result = self.trocr_processor.process_text_region(image_cv)
@@ -281,7 +285,7 @@ class GeminiProcessor:
             return []
 
     def _get_word_positions_tesseract(self, image_cv: np.ndarray) -> list[dict]:
-        """Get word positions using Tesseract (classic, reliable)"""
+        """Get word positions using Tesseract (classic, reliable)."""
         try:
             # Convert BGR to RGB for Tesseract
             if len(image_cv.shape) == 3:
@@ -329,7 +333,7 @@ class GeminiProcessor:
             return []
 
     def _get_word_positions_paddleocr(self, image_cv: np.ndarray) -> list[dict]:
-        """Get word positions using PaddleOCR (excellent for handwriting, latest tech)"""
+        """Get word positions using PaddleOCR (excellent for handwriting, latest tech)."""
         try:
             # PaddleOCR expects RGB format
             if len(image_cv.shape) == 3:
@@ -348,7 +352,7 @@ class GeminiProcessor:
                         text_info = line[1]
                         text = (
                             text_info[0]
-                            if isinstance(text_info, (list, tuple))
+                            if isinstance(text_info, list | tuple)
                             else str(text_info)
                         )
                         confidence = text_info[1] if len(text_info) > 1 else 0.8
@@ -435,7 +439,7 @@ class GeminiProcessor:
         line_y: int,
         line_confidence: float,
     ) -> list[dict]:
-        """Use image analysis to find actual word boundaries within a text line"""
+        """Use image analysis to find actual word boundaries within a text line."""
         try:
             # Convert to grayscale if needed
             if len(line_region.shape) == 3:
@@ -448,7 +452,8 @@ class GeminiProcessor:
                 gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
             )
 
-            # Create morphological kernel to connect characters within words but not between words
+            # Create morphological kernel to connect characters within words but not
+            # between words
             kernel_width = max(
                 2, min(6, line_region.shape[1] // 200)
             )  # Much smaller, adaptive kernel size
@@ -465,7 +470,7 @@ class GeminiProcessor:
             # Filter and sort contours by x-coordinate
             word_contours = []
 
-            for i, contour in enumerate(contours):
+            for _i, contour in enumerate(contours):
                 x, y, w, h = cv2.boundingRect(contour)
 
                 # Filter out noise (too small regions)
@@ -480,7 +485,9 @@ class GeminiProcessor:
 
             if len(word_contours) == len(words):
                 # Perfect match - use detected contours directly
-                for i, (word, contour_box) in enumerate(zip(words, word_contours)):
+                for _i, (word, contour_box) in enumerate(
+                    zip(words, word_contours, strict=False)
+                ):
                     rel_x, rel_y, w, h = contour_box
                     abs_x = line_x + rel_x
                     abs_y = line_y + rel_y
@@ -501,7 +508,9 @@ class GeminiProcessor:
                     word_contours, len(words)
                 )
 
-                for i, (word, contour_box) in enumerate(zip(words, merged_contours)):
+                for _i, (word, contour_box) in enumerate(
+                    zip(words, merged_contours, strict=False)
+                ):
                     rel_x, rel_y, w, h = contour_box
                     abs_x = line_x + rel_x
                     abs_y = line_y + rel_y
@@ -539,7 +548,7 @@ class GeminiProcessor:
     def _merge_contours_to_words(
         self, contours: list[list[int]], target_count: int
     ) -> list[list[int]]:
-        """Merge nearby contours to match the target word count"""
+        """Merge nearby contours to match the target word count."""
         if len(contours) <= target_count:
             return contours
 
@@ -580,7 +589,7 @@ class GeminiProcessor:
         line_y: int,
         line_confidence: float,
     ) -> list[dict]:
-        """Split larger contours when we have fewer contours than words"""
+        """Split larger contours when we have fewer contours than words."""
         word_detections = []
 
         if not contours:
@@ -641,7 +650,7 @@ class GeminiProcessor:
         line_h: int,
         line_confidence: float,
     ) -> list[dict]:
-        """Split a detected line into individual word bounding boxes"""
+        """Split a detected line into individual word bounding boxes."""
         word_detections = []
 
         if not words:
@@ -696,7 +705,7 @@ class GeminiProcessor:
     def _match_gemini_with_positions(
         self, gemini_text: str, ocr_detections: list[dict]
     ) -> list[WordMatch]:
-        """Match detected text with positions"""
+        """Match detected text with positions."""
         if not ocr_detections:
             return []
 
@@ -787,7 +796,7 @@ class GeminiProcessor:
         )
 
         # Find missing words
-        matched_gemini_words = set(match.gemini_word for match in current_matches)
+        matched_gemini_words = {match.gemini_word for match in current_matches}
         missing_words = [
             word for word in gemini_words if word not in matched_gemini_words
         ]
@@ -828,8 +837,8 @@ class GeminiProcessor:
         gemini_words: list[str],
         avg_width: int,
         avg_height: int,
-    ) -> Optional[list[int]]:
-        """Estimate position for a missing word"""
+    ) -> list[int] | None:
+        """Estimate position for a missing word."""
         if not current_matches:
             return [10, 10, len(word) * 12, avg_height]  # Default position
 
@@ -873,7 +882,7 @@ class GeminiProcessor:
         return None
 
     def _calculate_similarity(self, word1: str, word2: str) -> float:
-        """Calculate similarity between two words"""
+        """Calculate similarity between two words."""
         if not word1 or not word2:
             return 0.0
 

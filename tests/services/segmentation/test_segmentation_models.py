@@ -2,8 +2,6 @@
 Tests for segmentation Pydantic models
 """
 
-import json
-
 import pytest
 from pydantic import ValidationError
 
@@ -450,7 +448,7 @@ class TestModelsIntegration:
 
         # Verify segments are preserved correctly
         for original, restored in zip(
-            sample_segmentation_result.segments, result_restored.segments
+            sample_segmentation_result.segments, result_restored.segments, strict=False
         ):
             assert original.text == restored.text
             assert original.segment_type == restored.segment_type

@@ -130,7 +130,7 @@ def run_comprehensive_test():
         image_name = image_path.stem
         all_results[image_name] = {}
 
-        print(f"\n" + "=" * 80)
+        print("\n" + "=" * 80)
         print(f"🖼️  TESTING IMAGE: {image_path.name}")
         print(f"📏 Size: {Image.open(image_path).size}")
         print("=" * 80)
@@ -149,7 +149,7 @@ def run_comprehensive_test():
             all_results[image_name][backend_name] = result
 
             if result["success"]:
-                print(f"✅ SUCCESS")
+                print("✅ SUCCESS")
                 print(f"   📊 Words detected: {result['word_count']}")
                 print(f"   🎯 Average confidence: {result['confidence']:.1f}%")
                 print(f"   ⏱️  Processing time: {result['processing_time']:.2f}s")
@@ -159,7 +159,7 @@ def run_comprehensive_test():
                 print(f"❌ FAILED: {result['error']}")
 
     # Generate comprehensive analysis
-    print(f"\n" + "=" * 100)
+    print("\n" + "=" * 100)
     print("📊 COMPREHENSIVE ANALYSIS - ALL IMAGES & BACKENDS")
     print("=" * 100)
 
@@ -230,7 +230,7 @@ def run_comprehensive_test():
             )
 
     # Overall recommendations
-    print(f"\n" + "=" * 100)
+    print("\n" + "=" * 100)
     print("🏆 OVERALL RECOMMENDATIONS")
     print("=" * 100)
 
@@ -245,14 +245,14 @@ def run_comprehensive_test():
     print("│ 🌟 Unknown quality  │ Test all backends, pick best performer      │")
     print("└─────────────────────┴──────────────────────────────────────────────┘")
 
-    print(f"\n✨ KEY ADVANTAGES OF THIS SOLUTION:")
+    print("\n✨ KEY ADVANTAGES OF THIS SOLUTION:")
     print("• 🎯 ALWAYS trusts Gemini's accurate text extraction")
     print("• 🔄 Multiple OCR backends for different content types")
     print("• 📍 Guarantees every word is highlighted accurately")
     print("• ⚡ Can switch backends dynamically based on performance")
     print("• 🏆 Perfect for messy handwriting, unclear text, and mixed content")
 
-    print(f"\n📁 Generated highlighted images for visual comparison:")
+    print("\n📁 Generated highlighted images for visual comparison:")
     output_files = []
     for image_name in all_results:
         for backend_name, result in all_results[image_name].items():
@@ -288,7 +288,7 @@ if __name__ == "__main__":
     results = run_comprehensive_test()
 
     print(
-        f"\n🎉 Test completed! Check the generated highlighted images to see the differences."
+        "\n🎉 Test completed! Check the generated highlighted images to see the differences."
     )
     print(
         "💡 This solution guarantees perfect word highlighting regardless of content type!"

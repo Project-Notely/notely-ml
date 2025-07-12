@@ -7,7 +7,7 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Add the app directory to the Python path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -67,7 +67,7 @@ class SegmentationDemo:
         print("✅ Demo completed! Check the output directory for results.")
         print(f"📂 Results saved to: {self.output_dir}")
 
-    def find_images(self) -> List[Path]:
+    def find_images(self) -> list[Path]:
         """Find all image files in the data directory"""
         image_extensions = {".png", ".jpg", ".jpeg", ".tiff", ".bmp"}
         image_files = []
@@ -78,7 +78,7 @@ class SegmentationDemo:
 
         return sorted(image_files)
 
-    async def process_image(self, image_path: Path) -> Dict[str, Any]:
+    async def process_image(self, image_path: Path) -> dict[str, Any]:
         """Process a single image and return detailed results"""
         print(f"   📊 Analyzing {image_path.name}...")
 
@@ -123,7 +123,7 @@ class SegmentationDemo:
                     seg_type = segment.segment_type.value
                     segment_types[seg_type] = segment_types.get(seg_type, 0) + 1
 
-                print(f"   📋 Segment types found:")
+                print("   📋 Segment types found:")
                 for seg_type, count in segment_types.items():
                     print(f"      • {seg_type}: {count}")
             else:
@@ -132,7 +132,7 @@ class SegmentationDemo:
             return detailed_result
 
         except Exception as e:
-            print(f"   💥 Exception: {str(e)}")
+            print(f"   💥 Exception: {e!s}")
             return {
                 "success": False,
                 "error": str(e),
@@ -142,7 +142,7 @@ class SegmentationDemo:
                 "segments": [],
             }
 
-    def segment_to_dict(self, segment: DocumentSegment) -> Dict[str, Any]:
+    def segment_to_dict(self, segment: DocumentSegment) -> dict[str, Any]:
         """Convert a DocumentSegment to a dictionary for JSON serialization"""
         return {
             "text": segment.text,
@@ -161,7 +161,7 @@ class SegmentationDemo:
             "metadata": segment.metadata,
         }
 
-    def generate_summary_report(self, results: List[Dict[str, Any]]):
+    def generate_summary_report(self, results: list[dict[str, Any]]):
         """Generate a comprehensive summary report"""
         print("📊 SEGMENTATION DEMO SUMMARY")
         print("=" * 60)
@@ -175,7 +175,7 @@ class SegmentationDemo:
         print(f"Successful Segmentations: {successful_images}/{total_images}")
         print(f"Total Segments Found: {total_segments}")
         print(f"Total Processing Time: {total_processing_time:.2f}s")
-        print(f"Average Time per Image: {total_processing_time/total_images:.2f}s")
+        print(f"Average Time per Image: {total_processing_time / total_images:.2f}s")
         print()
 
         # Detailed results per image
@@ -217,7 +217,7 @@ class SegmentationDemo:
             json.dump(results, f, indent=2, default=str)
         print(f"📄 Detailed report saved to: {report_file}")
 
-    async def create_visualizations(self, results: List[Dict[str, Any]]):
+    async def create_visualizations(self, results: list[dict[str, Any]]):
         """Create visual outputs showing detected segments"""
         print("\n🎨 Creating visualizations...")
 
@@ -272,7 +272,7 @@ class SegmentationDemo:
                             draw.rectangle([x1, y1, x2, y2], outline=color, width=3)
 
                             # Draw label
-                            label = f"{i+1}. {seg_type} ({segment['confidence']:.2f})"
+                            label = f"{i + 1}. {seg_type} ({segment['confidence']:.2f})"
 
                             # Try to use a font, fallback to default
                             try:
@@ -297,7 +297,7 @@ class SegmentationDemo:
             except Exception as e:
                 print(f"      ❌ Failed to create visualization: {e}")
 
-    def create_text_report(self, filename: str, segments: List[Dict[str, Any]]):
+    def create_text_report(self, filename: str, segments: list[dict[str, Any]]):
         """Create a detailed text report for an image"""
         report_filename = f"{Path(filename).stem}_segments.txt"
         report_path = self.output_dir / report_filename

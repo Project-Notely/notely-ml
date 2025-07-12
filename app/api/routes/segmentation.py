@@ -1,8 +1,4 @@
-"""
-Document segmentation API routes
-"""
-
-from typing import List
+"""Document segmentation API routes."""
 
 from fastapi import APIRouter, File, Query, UploadFile
 
@@ -23,9 +19,7 @@ async def segment_document(
         True, description="Whether to infer table structure"
     ),
 ) -> SegmentationResult:
-    """
-    Segment a document into different element types
-    """
+    """Segment a document into different element types."""
     return await segmentation_controller.segment_document(
         file=file,
         strategy=strategy,
@@ -35,8 +29,6 @@ async def segment_document(
 
 
 @router.get("/supported-formats")
-async def get_supported_formats() -> List[str]:
-    """
-    Get list of supported file formats
-    """
+async def get_supported_formats() -> list[str]:
+    """Get list of supported file formats."""
     return await segmentation_controller.get_supported_formats()

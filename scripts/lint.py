@@ -69,7 +69,7 @@ def lint_diff() -> int:
 
     print(f"🔍 Linting {len(changed_files)} changed files...")
 
-    cmd = ["ruff", "check"] + changed_files
+    cmd = ["ruff", "check", *changed_files]
 
     if len(sys.argv) > 1 and sys.argv[1] == "--fix":
         cmd.append("--fix")

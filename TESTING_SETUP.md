@@ -177,4 +177,4 @@ addopts = [
 
 ---
 
-**Great work!** You now have a solid foundation for test-driven development with comprehensive testing coverage for your drawing repository. The tests will help ensure reliability as you continue to build out your drawing application. 
+**Great work!** You now have a solid foundation for test-driven development with comprehensive testing coverage for your drawing repository. The tests will help ensure reliability as you continue to build out your drawing application.

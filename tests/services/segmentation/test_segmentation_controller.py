@@ -6,21 +6,15 @@ import asyncio
 import io
 import os
 import tempfile
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from fastapi import HTTPException, UploadFile
 
 from app.controllers.segmentation_controller import (
     get_supported_formats,
     segment_document,
 )
-from app.models.segmentation_models import (
-    DocumentSegment,
-    SegmentationResult,
-    SegmentType,
-)
+from app.models.segmentation_models import SegmentationResult, SegmentType
 
 
 class MockUploadFile:
@@ -154,7 +148,7 @@ class TestSegmentDocument:
                 return temp_file
 
             with patch("tempfile.NamedTemporaryFile", side_effect=mock_tempfile):
-                result = await segment_document(mock_file)
+                await segment_document(mock_file)
 
                 # Verify service was called with a file path
                 mock_service.segment_document.assert_called_once()
@@ -372,7 +366,7 @@ class TestControllerIntegration:
         error_scenarios = [
             ("File not found", FileNotFoundError("File not found")),
             ("Permission denied", PermissionError("Permission denied")),
-            ("IO error", IOError("IO error")),
+            ("IO error", OSError("IO error")),
             ("Generic error", Exception("Generic error")),
         ]
 
@@ -421,7 +415,6 @@ class TestControllerIntegration:
         mock_file = MockUploadFile("test.txt", b"content")
 
         # Track file operations
-        created_files = []
         deleted_files = []
 
         original_unlink = os.unlink
@@ -431,20 +424,22 @@ class TestControllerIntegration:
             if os.path.exists(path):
                 original_unlink(path)
 
-        with patch("os.unlink", side_effect=mock_unlink):
-            with patch(
+        with (
+            patch("os.unlink", side_effect=mock_unlink),
+            patch(
                 "app.controllers.segmentation_controller.SegmentationService"
-            ) as mock_service_class:
-                mock_service = mock_service_class.return_value
-                mock_service.segment_document = AsyncMock(
-                    return_value=SegmentationResult(success=True, segments=[])
-                )
+            ) as mock_service_class,
+        ):
+            mock_service = mock_service_class.return_value
+            mock_service.segment_document = AsyncMock(
+                return_value=SegmentationResult(success=True, segments=[])
+            )
 
-                result = await segment_document(mock_file)
+            result = await segment_document(mock_file)
 
-                # Should have cleaned up at least one temporary file
-                assert len(deleted_files) >= 1
-                assert result.success is True
+            # Should have cleaned up at least one temporary file
+            assert len(deleted_files) >= 1
+            assert result.success is True
 
 
 class TestControllerErrorCases:
@@ -508,7 +503,7 @@ class TestControllerErrorCases:
     @pytest.mark.asyncio
     async def test_segment_document_special_characters_filename(self):
         """Test handling of special characters in filename"""
-        special_filename = "test@#$%^&*()_+{}|:<>?[]\;',.txt"
+        special_filename = r"test@#$%^&*()_+{}|:<>?[]\;',.txt"
         mock_file = MockUploadFile(special_filename, b"content")
 
         with patch(

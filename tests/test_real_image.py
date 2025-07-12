@@ -45,14 +45,14 @@ def main():
 
     # Test the best performing model for text reading
     print(f"\n{'=' * 50}")
-    print(f"🔄 Processing with TrOCR (printed_base)")
+    print("🔄 Processing with TrOCR (printed_base)")
     print(f"{'=' * 50}")
 
     # Initialize processor with printed model (better for paragraph text)
     processor = TrOCRProcessor(model_type="printed_base", device="cpu")
 
     if not processor.initialize():
-        print(f"❌ Failed to initialize TrOCR")
+        print("❌ Failed to initialize TrOCR")
         return
 
     # Process the image
@@ -69,17 +69,17 @@ def main():
     text = result.result.full_text
     word_count = result.result.total_words
 
-    print(f"✅ SUCCESS!")
+    print("✅ SUCCESS!")
     print(f"   🎯 Average Confidence: {confidence:.1f}%")
     print(f"   📝 Full Text: '{text}'")
     print(f"   📊 Total Words: {word_count}")
     print(f"   📦 Individual Word Boxes: {len(result.result.text_boxes)}")
 
     # Show each detected word
-    print(f"\n📝 Detected Words:")
+    print("\n📝 Detected Words:")
     for i, text_box in enumerate(result.result.text_boxes):
         print(
-            f"   {i+1:2d}. '{text_box.text}' (confidence: {text_box.confidence:.1f}%)"
+            f"   {i + 1:2d}. '{text_box.text}' (confidence: {text_box.confidence:.1f}%)"
         )
 
     # Save detailed results to JSON
@@ -110,12 +110,12 @@ def main():
     )
 
     if success:
-        print(f"✅ Word-highlighted image saved!")
+        print("✅ Word-highlighted image saved!")
     else:
-        print(f"❌ Failed to create highlighted image")
+        print("❌ Failed to create highlighted image")
 
     # Test search functionality
-    print(f"\n🔍 Testing Search Functionality (Ctrl-F style)")
+    print("\n🔍 Testing Search Functionality (Ctrl-F style)")
     print("=" * 50)
 
     # Test searches for common words
@@ -139,11 +139,11 @@ def main():
         if success:
             print(f"   ✅ Search results saved to: {search_output_path}")
         else:
-            print(f"   ❌ No matches found or error occurred")
+            print("   ❌ No matches found or error occurred")
 
     # Interactive search (if running interactively)
     try:
-        print(f"\n🎮 Interactive Search (press Enter to skip):")
+        print("\n🎮 Interactive Search (press Enter to skip):")
         user_search = input("Enter a word to search for: ").strip()
 
         if user_search:
@@ -169,12 +169,12 @@ def main():
 
     # Cleanup
     processor.cleanup()
-    print(f"🧹 Cleaned up resources")
+    print("🧹 Cleaned up resources")
 
-    print(f"\n✅ DONE! Check the highlighted images to see:")
-    print(f"   🎨 all_words_highlighted.png - All detected words with boxes")
-    print(f"   🔍 search_*.png - Search results for specific words")
-    print(f"   📊 word_detection_results.json - Complete detection data")
+    print("\n✅ DONE! Check the highlighted images to see:")
+    print("   🎨 all_words_highlighted.png - All detected words with boxes")
+    print("   🔍 search_*.png - Search results for specific words")
+    print("   📊 word_detection_results.json - Complete detection data")
 
 
 if __name__ == "__main__":

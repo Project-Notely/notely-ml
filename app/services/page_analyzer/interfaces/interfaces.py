@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -9,12 +9,11 @@ from app.services.page_analyzer.models.models import DocumentElement, Processing
 
 
 class OCRProcessor(ABC):
-    """Abstract base class for OCR processors"""
+    """Abstract base class for OCR processors."""
 
     @abstractmethod
     def initialize(self, **kwargs) -> bool:
-        """
-        Initialize the OCR processor
+        """Initialize the OCR processor.
 
         Returns:
             True if initialization successful, False otherwise
@@ -25,13 +24,14 @@ class OCRProcessor(ABC):
     def process_text_region(
         self,
         image_region: np.ndarray,
-        preprocessing_options: Optional[Dict[str, Any]] = None,
+        preprocessing_options: dict[str, Any] | None = None,
     ) -> ProcessingResult:
-        """Process a text region of an image
+        """Process a text region of an image.
 
         Args:
             image_region (np.ndarray): The image region to process
-            preprocessing_options (Optional[Dict[str, Any]], optional): Optional preprocessing options
+            preprocessing_options (Optional[Dict[str, Any]], optional): Optional
+                preprocessing options
 
         Returns:
             ProcessingResult: recognized text and confidence
@@ -40,7 +40,7 @@ class OCRProcessor(ABC):
 
     @abstractmethod
     def get_supported_languages(self) -> list[str]:
-        """Get list of supported languages
+        """Get list of supported languages.
 
         Returns:
             list[str]: List of supported languages
@@ -49,16 +49,16 @@ class OCRProcessor(ABC):
 
     @abstractmethod
     def cleanup(self) -> None:
-        """Clean up resources"""
+        """Clean up resources."""
         pass
 
 
 class ImageClassifier(ABC):
-    """Abstract interface for image classifiers"""
+    """Abstract interface for image classifiers."""
 
     @abstractmethod
     def initialize(self, **kwargs) -> bool:
-        """Initialize the image classifier
+        """Initialize the image classifier.
 
         Returns:
             bool: True if initialization successful, False otherwise
@@ -67,9 +67,9 @@ class ImageClassifier(ABC):
 
     @abstractmethod
     def classify_image(
-        self, image: Union[Image.Image, np.ndarray], top_k: int = 1
+        self, image: Image.Image | np.ndarray, top_k: int = 1
     ) -> ProcessingResult:
-        """Classify an image
+        """Classify an image.
 
         Args:
             image (Union[Image.Image, np.ndarray]): The image to classify
@@ -82,28 +82,28 @@ class ImageClassifier(ABC):
 
     @abstractmethod
     def get_class_names(self) -> list[str]:
-        """Get list of supported class names"""
+        """Get list of supported class names."""
         pass
 
     @abstractmethod
     def cleanup(self) -> None:
-        """Clean up resources"""
+        """Clean up resources."""
         pass
 
 
 class TableProcessor(ABC):
-    """Abstract interface for table processing"""
+    """Abstract interface for table processing."""
 
     @abstractmethod
     def initialize(self, **kwargs) -> bool:
-        """Initialize the table processor"""
+        """Initialize the table processor."""
         pass
 
     @abstractmethod
     def process_table(
         self, image_region: np.ndarray, extract_structure: bool = True
     ) -> ProcessingResult:
-        """Process a table region
+        """Process a table region.
 
         Args:
             image_region: Image region containing table
@@ -116,11 +116,11 @@ class TableProcessor(ABC):
 
 
 class DocumentSegmenter(ABC):
-    """Abstract interface for document segmenters"""
+    """Abstract interface for document segmenters."""
 
     @abstractmethod
     def initialize(self, **kwargs) -> bool:
-        """Initialize the document segmenter
+        """Initialize the document segmenter.
 
         Returns:
             bool: True if initialization successful, False otherwise
@@ -129,9 +129,9 @@ class DocumentSegmenter(ABC):
 
     @abstractmethod
     def segment_document(
-        self, file_path: Union[str, Path], strategy: str = "hi_res", **kwargs
+        self, file_path: str | Path, strategy: str = "hi_res", **kwargs
     ) -> ProcessingResult:
-        """Segment a document
+        """Segment a document.
 
         Args:
             file_path (Union[str, Path]): Path to the document file
@@ -145,19 +145,18 @@ class DocumentSegmenter(ABC):
 
     @abstractmethod
     def get_supported_formats(self) -> list[str]:
-        """Get list of supported document formats"""
+        """Get list of supported document formats."""
         pass
 
 
 class RegionExtractor(ABC):
-    """Abstract interface for extracting regions from images"""
+    """Abstract interface for extracting regions from images."""
 
     @abstractmethod
     def extract_regions(
-        self, image: Union[str, Path, Image.Image, np.ndarray], element: DocumentElement
+        self, image: str | Path | Image.Image | np.ndarray, element: DocumentElement
     ) -> ProcessingResult:
-        """
-        Extract image region for a document element
+        """Extract image region for a document element.
 
         Args:
             image: Source image
@@ -170,56 +169,54 @@ class RegionExtractor(ABC):
 
 
 class ProcessorFactory(ABC):
-    """Abstract factory for creating processors"""
+    """Abstract factory for creating processors."""
 
     @abstractmethod
     def create_ocr_processor(self, processor_type: str, **kwargs) -> OCRProcessor:
-        """Create an OCR processor"""
+        """Create an OCR processor."""
         pass
 
     @abstractmethod
     def create_image_classifier(
         self, classifier_type: str, **kwargs
     ) -> ImageClassifier:
-        """Create an image classifier"""
+        """Create an image classifier."""
         pass
 
     @abstractmethod
     def create_document_segmenter(
         self, segmenter_type: str, **kwargs
     ) -> DocumentSegmenter:
-        """Create a document segmenter"""
+        """Create a document segmenter."""
         pass
 
     @abstractmethod
     def create_region_extractor(self, extractor_type: str, **kwargs) -> RegionExtractor:
-        """Create a region extractor"""
+        """Create a region extractor."""
         pass
 
     @abstractmethod
     def create_table_processor(self, processor_type: str, **kwargs) -> TableProcessor:
-        """Create a table processor"""
+        """Create a table processor."""
         pass
 
 
 class ProcessingPipeline(ABC):
-    """Abstract interface for processing pipelines"""
+    """Abstract interface for processing pipelines."""
 
     @abstractmethod
     def add_processor(self, processor_type: str, processor: Any) -> None:
-        """Add a processor to the pipeline"""
+        """Add a processor to the pipeline."""
         pass
 
     @abstractmethod
     def process_element(
-        self, element: DocumentElement, image: Union[str, Path, Image.Image, np.ndarray]
+        self, element: DocumentElement, image: str | Path | Image.Image | np.ndarray
     ) -> ProcessingResult:
-        """Process a single document element"""
+        """Process a single document element."""
         pass
 
     @abstractmethod
-    def process_document(
-        self, file_path: Union[str, Path], **kwargs
-    ) -> ProcessingResult:
-        """Process an entire document"""
+    def process_document(self, file_path: str | Path, **kwargs) -> ProcessingResult:
+        """Process an entire document."""
         pass

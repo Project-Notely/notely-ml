@@ -60,7 +60,7 @@ def test_all_backends_on_image(image_path: str):
             # Initialize processor
             processor = GeminiProcessor(ocr_backend=backend_name)
             if not processor.initialize(**kwargs):
-                print(f"   ❌ Failed to initialize")
+                print("   ❌ Failed to initialize")
                 continue
 
             # Process image
@@ -152,7 +152,7 @@ def smart_backend_selection_demo():
         return
 
     for image_path in sorted(test_images):
-        print(f"\n" + "=" * 70)
+        print("\n" + "=" * 70)
         print(f"📸 ANALYZING: {image_path.name}")
         image = Image.open(image_path)
         print(f"📏 Size: {image.size}")
@@ -168,7 +168,7 @@ def smart_backend_selection_demo():
         # Choose the best backend
         analysis = choose_best_backend(results)
 
-        print(f"\n🏆 SMART RECOMMENDATION ANALYSIS:")
+        print("\n🏆 SMART RECOMMENDATION ANALYSIS:")
         print("-" * 50)
 
         best = analysis["best_overall"]
@@ -180,7 +180,7 @@ def smart_backend_selection_demo():
         print(f"   💡 {best['description']}")
 
         # Show specialized categories
-        print(f"\n📈 SPECIALIZED RANKINGS:")
+        print("\n📈 SPECIALIZED RANKINGS:")
         print(
             f"   🎯 Highest Confidence: {analysis['best_confidence']['backend'].upper()} ({analysis['best_confidence']['confidence']:.1f}%)"
         )
@@ -207,7 +207,7 @@ def smart_backend_selection_demo():
         print(f"\n💾 Saved optimized result: {output_filename}")
 
         # Content type analysis
-        print(f"\n🔍 CONTENT ANALYSIS:")
+        print("\n🔍 CONTENT ANALYSIS:")
         if best["backend"] == "tesseract" and best["confidence"] > 85:
             print("   📄 Detected: Clear printed text - Tesseract is optimal")
         elif best["backend"] == "trocr":
@@ -216,7 +216,7 @@ def smart_backend_selection_demo():
             print("   🔄 Detected: Mixed content - EasyOCR provides good balance")
 
         # Performance comparison table
-        print(f"\n📊 DETAILED COMPARISON:")
+        print("\n📊 DETAILED COMPARISON:")
         print(
             f"{'Backend':<12} {'Score':<8} {'Confidence':<12} {'Words':<8} {'Time':<8} {'Quality'}"
         )
@@ -242,40 +242,40 @@ def smart_backend_selection_demo():
 def create_usage_function():
     """Show how to use smart backend selection in practice"""
 
-    print(f"\n" + "=" * 70)
+    print("\n" + "=" * 70)
     print("💻 PRACTICAL USAGE EXAMPLE")
     print("=" * 70)
 
     code_example = '''
 def smart_word_highlighting(image_path: str):
     """Automatically choose the best OCR backend for an image"""
-    
+
     image = Image.open(image_path)
-    
+
     # Test backends quickly
     backends_to_try = [
         ("tesseract", {}),  # Fast, good for printed text
         ("trocr", {"trocr_model_type": "handwritten_base", "device": "cpu"}),  # For handwriting
         ("easyocr", {"gpu": False})  # Fallback
     ]
-    
+
     best_result = None
     best_score = 0
-    
+
     for backend_name, kwargs in backends_to_try:
         processor = GeminiProcessor(ocr_backend=backend_name)
         if processor.initialize(**kwargs):
             result = processor.process_text_region(image)
-            
+
             if result.success:
                 # Calculate performance score
                 score = result.result.average_confidence * 0.7 + result.result.total_words * 0.3
-                
+
                 if score > best_score:
                     best_score = score
                     best_result = result.result
                     best_backend = backend_name
-    
+
     print(f"🏆 Best backend: {best_backend} (score: {best_score:.1f})")
     return best_result
 '''
@@ -304,7 +304,7 @@ if __name__ == "__main__":
     smart_backend_selection_demo()
     create_usage_function()
 
-    print(f"\n🎉 SUMMARY:")
+    print("\n🎉 SUMMARY:")
     print("✨ This solution guarantees perfect word highlighting by:")
     print("   1. 🧠 Automatically selecting the best OCR backend")
     print("   2. 🎯 Always trusting Gemini's accurate text extraction")

@@ -1,10 +1,7 @@
-"""
-Document segmentation controller
-"""
+"""Document segmentation controller."""
 
 import os
 import tempfile
-from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
@@ -18,8 +15,7 @@ async def segment_document(
     extract_images: bool = True,
     infer_table_structure: bool = True,
 ) -> SegmentationResult:
-    """
-    Segment uploaded document
+    """Segment uploaded document.
 
     Args:
         file: Uploaded file
@@ -64,6 +60,6 @@ async def segment_document(
 
 
 async def get_supported_formats() -> list[str]:
-    """Get list of supported file formats"""
+    """Get list of supported file formats."""
     service = SegmentationService()
     return service.get_supported_formats()

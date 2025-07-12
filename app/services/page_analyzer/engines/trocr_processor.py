@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import cv2
 import numpy as np
 import torch
@@ -34,7 +32,8 @@ class TrOCRProcessor:
     def initialize(self) -> bool:
         if self.model_type not in self.MODELS:
             print(
-                f"Unknown model type: {self.model_type}. Available: {list(self.MODELS.keys())}"
+                f"Unknown model type: {self.model_type}. "
+                f"Available: {list(self.MODELS.keys())}"
             )
             return False
 
@@ -55,7 +54,7 @@ class TrOCRProcessor:
             return False
 
     def process_text_region(self, image: np.ndarray) -> ProcessingResult:
-        """Process entire region and detect individual words"""
+        """Process entire region and detect individual words."""
         if not self.initialized:
             return ProcessingResult(success=False, error="Model not initialized")
 
@@ -115,12 +114,13 @@ class TrOCRProcessor:
 
     def _detect_lines_simple(
         self, image: np.ndarray
-    ) -> list[Tuple[np.ndarray, int, int]]:
+    ) -> list[tuple[np.ndarray, int, int]]:
         """Simple line detection using horizontal morphology
         Args:
             image (np.ndarray): input image
         Returns:
-            list[Tuple[np.ndarray, int, int]]: list of tuples containing the line image, the y-coordinate of the line, and the height of the line
+            list[Tuple[np.ndarray, int, int]]: list of tuples containing the line
+                image, the y-coordinate of the line, and the height of the line.
         """
         # convert to grayscale
         if len(image.shape) == 3:
@@ -157,7 +157,7 @@ class TrOCRProcessor:
         return lines if lines else [(image, 0, image.shape[0])]
 
     def _detect_word_regions_simple(self, line_image: np.ndarray) -> list[list[int]]:
-        """Simple word detection using morphological operations"""
+        """Simple word detection using morphological operations."""
         # Convert to grayscale
         if len(line_image.shape) == 3:
             gray = cv2.cvtColor(line_image, cv2.COLOR_BGR2GRAY)
@@ -194,12 +194,12 @@ class TrOCRProcessor:
         line_y: int,
         line_confidence: float,
     ) -> list[TextBox]:
-        """Simple word matching with better fallback"""
+        """Simple word matching with better fallback."""
         text_boxes = []
 
         if len(regions) == len(words):
             # Perfect match - use detected regions
-            for word, region in zip(words, regions):
+            for word, region in zip(words, regions, strict=False):
                 x, y_rel, w, h = region
                 bbox = [int(x), int(line_y + y_rel), int(w), int(h)]
                 confidence = float(line_confidence * 100)
@@ -208,7 +208,7 @@ class TrOCRProcessor:
         elif len(regions) > len(words) and len(regions) <= len(words) * 2:
             # More regions than words - merge adjacent regions
             merged_regions = self._merge_adjacent_regions(regions, len(words))
-            for word, region in zip(words, merged_regions):
+            for word, region in zip(words, merged_regions, strict=False):
                 x, y_rel, w, h = region
                 bbox = [int(x), int(line_y + y_rel), int(w), int(h)]
                 confidence = float(line_confidence * 100)
@@ -225,7 +225,7 @@ class TrOCRProcessor:
     def _merge_adjacent_regions(
         self, regions: list[list[int]], target_count: int
     ) -> list[list[int]]:
-        """Merge adjacent regions to match word count"""
+        """Merge adjacent regions to match word count."""
         if len(regions) <= target_count:
             return regions
 
@@ -263,7 +263,7 @@ class TrOCRProcessor:
         line_confidence: float,
         detected_regions: list[list[int]],
     ) -> list[TextBox]:
-        """Intelligent word position estimation"""
+        """Intelligent word position estimation."""
         text_boxes = []
 
         if detected_regions:
@@ -307,8 +307,8 @@ class TrOCRProcessor:
 
         return text_boxes
 
-    def _process_single_line(self, line_image: np.ndarray) -> Tuple[str, float]:
-        """Process a single line of text with TrOCR and return text with confidence"""
+    def _process_single_line(self, line_image: np.ndarray) -> tuple[str, float]:
+        """Process a single line of text with TrOCR and return text with confidence."""
         try:
             # check line quality
             line_quality = self._assess_line_quality(line_image)
@@ -329,7 +329,8 @@ class TrOCRProcessor:
             if pil_image.size[0] < 32 or pil_image.size[1] < 16:
                 print(f"Warning: Line image too small: {pil_image.size}")
                 print(
-                    f"Resizing to minimum size: {max(32, pil_image.size[0])}x{max(16, pil_image.size[1])}"
+                    f"Resizing to minimum size: {max(32, pil_image.size[0])}x"
+                    f"{max(16, pil_image.size[1])}"
                 )
                 # resize to minimum size
                 pil_image = pil_image.resize(
@@ -367,7 +368,8 @@ class TrOCRProcessor:
             confidence = confidence * line_quality
 
             print(
-                f"Line processed: '{text[:50]}...' | Confidence: {confidence:.3f} | Quality: {line_quality:.3f}"
+                f"Line processed: '{text[:50]}...' | Confidence: {confidence:.3f} | "
+                f"Quality: {line_quality:.3f}"
             )
 
             return text.strip(), confidence
@@ -377,7 +379,7 @@ class TrOCRProcessor:
             return "", 0.0
 
     def _assess_line_quality(self, line_image: np.ndarray) -> float:
-        """Assess the quality of a line image for OCR processing"""
+        """Assess the quality of a line image for OCR processing."""
         try:
             # convert to grayscale
             if len(line_image.shape) == 3:
@@ -442,7 +444,7 @@ class TrOCRProcessor:
     def _calculate_confidence_improved(
         self, scores: tuple, generated_ids: torch.Tensor, text: str
     ) -> float:
-        """Improved confidence calculation with better handling of edge cases"""
+        """Improved confidence calculation with better handling of edge cases."""
         try:
             if not scores or len(scores) == 0:
                 return 0.5  # Default confidence instead of 0
@@ -483,7 +485,7 @@ class TrOCRProcessor:
     def _calculate_probability_confidence(
         self, scores: tuple, generated_tokens: torch.Tensor
     ) -> float:
-        """Calculate confidence based on token probabilities"""
+        """Calculate confidence based on token probabilities."""
         try:
             total_log_prob = 0.0
             num_tokens = 0
@@ -514,7 +516,7 @@ class TrOCRProcessor:
             return 0.1
 
     def _calculate_entropy_confidence(self, scores: tuple) -> float:
-        """Calculate confidence based on prediction entropy (lower entropy = higher confidence)"""
+        """Calculate confidence based on prediction entropy (lower entropy = higher confidence)."""
         try:
             total_entropy = 0.0
             num_tokens = len(scores)
@@ -542,7 +544,7 @@ class TrOCRProcessor:
             return 0.1
 
     def _assess_text_confidence(self, text: str) -> float:
-        """Assess confidence based on the generated text characteristics"""
+        """Assess confidence based on the generated text characteristics."""
         try:
             if not text or len(text.strip()) == 0:
                 return 0.1
@@ -587,8 +589,8 @@ class TrOCRProcessor:
         line_height: int,
         line_width: int,
         line_image: np.ndarray = None,
-    ) -> list[Tuple[str, list[int]]]:
-        """Deprecated - word positioning now handled in process_text_region"""
+    ) -> list[tuple[str, list[int]]]:
+        """Deprecated - word positioning now handled in process_text_region."""
         # This method is kept for backward compatibility but shouldn't be used
         word_boxes = []
         for i, word in enumerate(words):
@@ -598,7 +600,7 @@ class TrOCRProcessor:
         return word_boxes
 
     def cleanup(self):
-        """Clean up resources"""
+        """Clean up resources."""
         if self.model is not None:
             del self.model
         if self.processor is not None:

@@ -1,9 +1,7 @@
-"""
-Concrete implementations of the abstract processors
-"""
+"""Concrete implementations of the abstract processors."""
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import cv2
 import easyocr
@@ -25,15 +23,14 @@ from ..models.elements import DocumentElement, ProcessingResult
 
 
 class EasyOCRProcessor(OCRProcessor):
-    """EasyOCR implementation of OCR processor"""
+    """EasyOCR implementation of OCR processor."""
 
     def __init__(self):
         self.reader = None
         self.languages = ["en"]
 
-    def initialize(self, languages: list[str] = None, **kwargs) -> bool:
-        """Initialize EasyOCR"""
-
+    def initialize(self, languages: list[str] | None = None, **kwargs) -> bool:
+        """Initialize EasyOCR."""
         try:
             if languages:
                 self.languages = languages
@@ -46,9 +43,9 @@ class EasyOCRProcessor(OCRProcessor):
     def process_text_region(
         self,
         image_region: np.ndarray,
-        preprocessing_options: Optional[Dict[str, Any]] = None,
+        preprocessing_options: dict[str, Any] | None = None,
     ) -> ProcessingResult:
-        """Process text region with EasyOCR"""
+        """Process text region with EasyOCR."""
         if self.reader is None:
             return ProcessingResult(
                 success=False, result=None, error_message="OCR reader not initialized"
@@ -77,7 +74,7 @@ class EasyOCRProcessor(OCRProcessor):
             text_parts = []
             confidences = []
 
-            for bbox, text, confidence in results:
+            for _bbox, text, confidence in results:
                 text_parts.append(text)
                 confidences.append(confidence)
 
@@ -98,17 +95,17 @@ class EasyOCRProcessor(OCRProcessor):
             return ProcessingResult(success=False, result=None, error_message=str(e))
 
     def get_supported_languages(self) -> list[str]:
-        """Get supported languages"""
+        """Get supported languages."""
         # Common EasyOCR languages
         return ["en", "ch_sim", "ch_tra", "fr", "de", "ja", "ko", "es"]
 
     def cleanup(self) -> None:
-        """Clean up resources"""
+        """Clean up resources."""
         self.reader = None
 
 
 class ResNetImageClassifier(ImageClassifier):
-    """ResNet50-based image classifier"""
+    """ResNet50-based image classifier."""
 
     def __init__(self):
         self.model = None
@@ -116,8 +113,7 @@ class ResNetImageClassifier(ImageClassifier):
         self.class_names = []
 
     def initialize(self, **kwargs) -> bool:
-        """Initialize ResNet classifier"""
-
+        """Initialize ResNet classifier."""
         try:
             # Load pretrained ResNet50
             self.model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V2)
@@ -144,7 +140,7 @@ class ResNetImageClassifier(ImageClassifier):
             return False
 
     def _load_basic_classes(self):
-        """Load basic class names"""
+        """Load basic class names."""
         self.class_names = [
             "person",
             "car",
@@ -204,9 +200,9 @@ class ResNetImageClassifier(ImageClassifier):
         ]
 
     def classify_image(
-        self, image: Union[Image.Image, np.ndarray], top_k: int = 1
+        self, image: Image.Image | np.ndarray, top_k: int = 1
     ) -> ProcessingResult:
-        """Classify image with ResNet"""
+        """Classify image with ResNet."""
         if self.model is None:
             return ProcessingResult(
                 success=False, result=None, error_message="Classifier not initialized"
@@ -267,31 +263,31 @@ class ResNetImageClassifier(ImageClassifier):
             return ProcessingResult(success=False, result=None, error_message=str(e))
 
     def get_class_names(self) -> list[str]:
-        """Get supported class names"""
+        """Get supported class names."""
         return self.class_names.copy()
 
     def cleanup(self) -> None:
-        """Clean up resources"""
+        """Clean up resources."""
         if self.model is not None:
             del self.model
         self.model = None
 
 
 class UnstructuredDocumentSegmenter(DocumentSegmenter):
-    """Unstructured library-based document segmenter"""
+    """Unstructured library-based document segmenter."""
 
     def __init__(self):
         self.service = UnstructuredSegmentationService()
 
     def initialize(self, **kwargs) -> bool:
-        """Initialize the segmenter"""
+        """Initialize the segmenter."""
         # Unstructured service doesn't need explicit initialization
         return True
 
     def segment_document(
-        self, file_path: Union[str, Path], strategy: str = "hi_res", **kwargs
+        self, file_path: str | Path, strategy: str = "hi_res", **kwargs
     ) -> ProcessingResult:
-        """Segment document using unstructured"""
+        """Segment document using unstructured."""
         try:
             # Check if file exists first
             file_path = Path(file_path)
@@ -329,7 +325,7 @@ class UnstructuredDocumentSegmenter(DocumentSegmenter):
             return ProcessingResult(success=False, result=None, error_message=str(e))
 
     def get_supported_formats(self) -> list[str]:
-        """Get supported document formats"""
+        """Get supported document formats."""
         return [
             "pdf",
             "png",
@@ -345,15 +341,15 @@ class UnstructuredDocumentSegmenter(DocumentSegmenter):
 
 
 class DefaultRegionExtractor(RegionExtractor):
-    """Default implementation for extracting regions from images"""
+    """Default implementation for extracting regions from images."""
 
     def extract_regions(
-        self, image: Union[str, Path, Image.Image, np.ndarray], element: DocumentElement
+        self, image: str | Path | Image.Image | np.ndarray, element: DocumentElement
     ) -> ProcessingResult:
-        """Extract region from image based on element coordinates"""
+        """Extract region from image based on element coordinates."""
         try:
             # Load image if path provided
-            if isinstance(image, (str, Path)):
+            if isinstance(image, str | Path):
                 img_array = cv2.imread(str(image))
             elif isinstance(image, Image.Image):
                 img_array = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
@@ -405,18 +401,19 @@ class DefaultRegionExtractor(RegionExtractor):
 
 
 class BasicTableProcessor(TableProcessor):
-    """Basic table processor (placeholder implementation)"""
+    """Basic table processor (placeholder implementation)."""
 
     def initialize(self, **kwargs) -> bool:
-        """Initialize table processor"""
+        """Initialize table processor."""
         return True
 
     def process_table(
         self, image_region: np.ndarray, extract_structure: bool = True
     ) -> ProcessingResult:
-        """Basic table processing (placeholder)"""
+        """Basic table processing (placeholder)."""
         try:
-            # This is a placeholder - in practice you'd use a proper table extraction library
+            # This is a placeholder - in practice you'd use a proper table extraction
+            # library
             # like PaddleOCR's table recognition or similar
 
             height, width = image_region.shape[:2]

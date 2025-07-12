@@ -1,43 +1,43 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 
 @dataclass
 class DocumentElement:
-    """Represents a document element from unstructured analysis"""
+    """Represents a document element from unstructured analysis."""
 
     element_type: str
     text: str
-    coordinates: Optional[Dict[str, float]]
-    page_number: Optional[int]
-    confidence: Optional[float]
-    metadata: Dict[str, Any]
+    coordinates: dict[str, float] | None
+    page_number: int | None
+    confidence: float | None
+    metadata: dict[str, Any]
 
 
 @dataclass
 class ProcessingResult:
-    """Standard result format for all processors"""
+    """Standard result format for all processors."""
 
     success: bool
     result: Any
-    confidence: Optional[float] = None
-    metadata: Optional[Dict[str, Any]] = None
-    error_message: Optional[str] = None
+    confidence: float | None = None
+    metadata: dict[str, Any] | None = None
+    error_message: str | None = None
 
 
 @dataclass
 class TextBox:
-    """Represents a detected text box with location"""
+    """Represents a detected text box with location."""
 
     text: str
     confidence: float
-    bbox: Tuple[int, int, int, int]  # (x, y, width, height)
+    bbox: tuple[int, int, int, int]  # (x, y, width, height)
     word_level: bool = False
 
 
 @dataclass
 class OCRResult:
-    """Result for OCR processing"""
+    """Result for OCR processing."""
 
     full_text: str
     text_boxes: list[TextBox]

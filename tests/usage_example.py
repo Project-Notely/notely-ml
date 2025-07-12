@@ -6,7 +6,6 @@ with different OCR backends for precise word positioning, especially
 for messy handwriting and unclear text.
 """
 
-import os
 import sys
 from pathlib import Path
 

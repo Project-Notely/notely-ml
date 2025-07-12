@@ -1,12 +1,10 @@
-"""
-Document segmentation service using unstructured.io
-"""
+"""Document segmentation service using unstructured.io."""
 
 import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -25,12 +23,10 @@ logger = logging.getLogger(__name__)
 
 
 class SegmentationService:
-    """
-    Service for document segmentation using unstructured.io
-    """
+    """Service for document segmentation using unstructured.io."""
 
     def __init__(self):
-        """Initialize the segmentation service"""
+        """Initialize the segmentation service."""
         self.supported_formats = {
             ".png",
             ".jpg",
@@ -47,13 +43,12 @@ class SegmentationService:
 
     async def segment_document(
         self,
-        file_path: Union[str, Path],
+        file_path: str | Path,
         strategy: str = "hi_res",
         extract_images: bool = True,
         infer_table_structure: bool = True,
     ) -> SegmentationResult:
-        """
-        Segment a document into different element types
+        """Segment a document into different element types.
 
         Args:
             file_path: Path to the document file
@@ -102,14 +97,13 @@ class SegmentationService:
             )
 
         except Exception as e:
-            logger.error(f"Document segmentation failed: {str(e)}")
+            logger.error(f"Document segmentation failed: {e!s}")
             return SegmentationResult(success=False, error=str(e), segments=[])
 
     async def segment_image(
-        self, image: Union[str, Path, Image.Image, np.ndarray], strategy: str = "hi_res"
+        self, image: str | Path | Image.Image | np.ndarray, strategy: str = "hi_res"
     ) -> SegmentationResult:
-        """
-        Segment an image file
+        """Segment an image file.
 
         Args:
             image: Image file path or PIL Image or numpy array
@@ -121,7 +115,7 @@ class SegmentationService:
         temp_path = None
         try:
             # Handle different input types
-            if isinstance(image, (str, Path)):
+            if isinstance(image, str | Path):
                 file_path = Path(image)
             elif isinstance(image, Image.Image):
                 # Save PIL Image to temporary file
@@ -144,7 +138,7 @@ class SegmentationService:
             )
 
         except Exception as e:
-            logger.error(f"Image segmentation failed: {str(e)}")
+            logger.error(f"Image segmentation failed: {e!s}")
             return SegmentationResult(success=False, error=str(e), segments=[])
         finally:
             # Clean up temporary file
@@ -152,7 +146,7 @@ class SegmentationService:
                 os.unlink(temp_path)
 
     def _get_partition_strategy(self, strategy: str) -> PartitionStrategy:
-        """Get the appropriate partition strategy"""
+        """Get the appropriate partition strategy."""
         strategy_mapping = {
             "fast": PartitionStrategy.FAST,
             "hi_res": PartitionStrategy.HI_RES,
@@ -161,9 +155,9 @@ class SegmentationService:
         return strategy_mapping.get(strategy, PartitionStrategy.HI_RES)
 
     def _convert_elements_to_segments(
-        self, elements: List[Element]
-    ) -> List[DocumentSegment]:
-        """Convert unstructured elements to our segment format"""
+        self, elements: list[Element]
+    ) -> list[DocumentSegment]:
+        """Convert unstructured elements to our segment format."""
         segments = []
 
         for element in elements:
@@ -190,13 +184,13 @@ class SegmentationService:
                 segments.append(segment)
 
             except Exception as e:
-                logger.warning(f"Failed to convert element: {str(e)}")
+                logger.warning(f"Failed to convert element: {e!s}")
                 continue
 
         return segments
 
     def _map_element_type(self, element_category: str) -> SegmentType:
-        """Map unstructured element category to our segment type"""
+        """Map unstructured element category to our segment type."""
         mapping = {
             "Title": SegmentType.TITLE,
             "NarrativeText": SegmentType.PARAGRAPH,
@@ -213,8 +207,8 @@ class SegmentationService:
         }
         return mapping.get(element_category, SegmentType.TEXT)
 
-    def _extract_bounding_box(self, coordinates) -> Optional[BoundingBox]:
-        """Extract bounding box from coordinates"""
+    def _extract_bounding_box(self, coordinates) -> BoundingBox | None:
+        """Extract bounding box from coordinates."""
         try:
             if hasattr(coordinates, "points"):
                 points = coordinates.points
@@ -233,12 +227,12 @@ class SegmentationService:
                         height=int(y_max - y_min),
                     )
         except Exception as e:
-            logger.warning(f"Failed to extract bounding box: {str(e)}")
+            logger.warning(f"Failed to extract bounding box: {e!s}")
 
         return None
 
     def _calculate_confidence(self, element: Element) -> float:
-        """Calculate confidence score for an element"""
+        """Calculate confidence score for an element."""
         # Basic confidence based on text length and element type
         text_length = len(str(element).strip())
 
@@ -251,8 +245,8 @@ class SegmentationService:
         else:
             return 0.95
 
-    def _extract_metadata(self, element: Element) -> Dict[str, Any]:
-        """Extract metadata from an element"""
+    def _extract_metadata(self, element: Element) -> dict[str, Any]:
+        """Extract metadata from an element."""
         metadata = {
             "category": element.category,
             "text_length": len(str(element).strip()),
@@ -266,8 +260,8 @@ class SegmentationService:
 
         return metadata
 
-    def _calculate_statistics(self, segments: List[DocumentSegment]) -> Dict[str, Any]:
-        """Calculate segmentation statistics"""
+    def _calculate_statistics(self, segments: list[DocumentSegment]) -> dict[str, Any]:
+        """Calculate segmentation statistics."""
         stats = {
             "total_segments": len(segments),
             "segment_types": {},
@@ -295,11 +289,11 @@ class SegmentationService:
         return stats
 
     def _save_temp_image(self, image: Image.Image) -> str:
-        """Save PIL Image to temporary file"""
+        """Save PIL Image to temporary file."""
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
             image.save(temp_file.name, "PNG")
             return temp_file.name
 
-    def get_supported_formats(self) -> List[str]:
-        """Get list of supported file formats"""
+    def get_supported_formats(self) -> list[str]:
+        """Get list of supported file formats."""
         return list(self.supported_formats)

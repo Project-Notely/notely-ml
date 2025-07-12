@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""
-Simple runner script for the segmentation demo
-"""
+"""Simple runner script for the segmentation demo."""
+
 import asyncio
 import sys
 from pathlib import Path
@@ -16,5 +15,5 @@ if __name__ == "__main__":
     print("This will process images from your data directory")
     print("Results will be saved to output/segmentation_demo/")
     print("-" * 50)
-    
-    asyncio.run(main()) 
+
+    asyncio.run(main())
