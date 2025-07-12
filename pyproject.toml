@@ -1,24 +1,192 @@
-[project]
+[tool.poetry]
 name = "notely-ml"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "Isolumi"}
-]
+description = "ML-powered note-taking application with drawing capabilities"
+authors = ["Isolumi <hubertx98@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "torch (>=2.7.1,<3.0.0)",
-    "transformers (>=4.52.4,<5.0.0)",
-    "opencv-python (>=4.11.0.86,<5.0.0.0)",
-    "numpy (>=2.3.0,<3.0.0)",
-    "pillow (>=11.2.1,<12.0.0)",
-    "fastapi (>=0.115.12,<0.116.0)",
-    "pydantic (>=2.11.5,<3.0.0)",
-    "uvicorn (>=0.34.3,<0.35.0)"
-]
+packages = [{include = "app"}]
 
+[tool.poetry.dependencies]
+python = "^3.12"
+torch = "^2.7.1"
+transformers = "^4.52.4"
+opencv-python = "^4.11.0.86"
+numpy = "^2.3.0"
+pillow = "^11.2.1"
+fastapi = "^0.115.12"
+pydantic = "^2.11.5"
+uvicorn = "^0.34.3"
+pymongo = "^4.10.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+pytest-asyncio = "^0.25.0"
+pytest-mock = "^3.14.0"
+pytest-cov = "^6.0.0"
+ruff = "^0.8.0"
+black = "^24.0.0"
+isort = "^5.13.0"
+mypy = "^1.11.0"
+pre-commit = "^4.0.0"
+
+[tool.poetry.scripts]
+test = "scripts.test:main"
+test-cov = "scripts.test:main_with_coverage"
+test-specific = "scripts.test:run_specific_test"
+lint = "scripts.lint:main"
+lint-fix = "scripts.lint:main --fix"
+lint-diff = "scripts.lint:lint_diff"
+format = "scripts.format:main"
+format-check = "scripts.format:check"
+format-file = "scripts.format:format_file"
+type-check = "scripts.type_check:main"
+type-check-strict = "scripts.type_check:check_strict"
+type-check-file = "scripts.type_check:check_file"
+dev-setup = "scripts.dev_setup:main"
+dev-clean = "scripts.dev_setup:clean"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-report=html:output/htmlcov",
+    "--asyncio-mode=auto"
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow running tests"
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "dist",
+    "build",
+    "*.egg-info",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+    "ARG001", # unused-function-argument
+    "ARG002", # unused-method-argument
+    "ARG003", # unused-class-method-argument
+    "ARG004", # unused-static-method-argument
+    "ARG005", # unused-lambda-argument
+    "D",  # pydocstyle
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "RUF", # Ruff-specific rules
+]
+ignore = [
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D105", # Missing docstring in magic method
+    "D107", # Missing docstring in __init__
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D", "ARG"]
+"scripts/*" = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | venv
+  | \.tox
+  | \.eggs
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_first_party = ["app"]
+known_third_party = ["pytest", "pydantic", "fastapi", "pymongo", "torch", "transformers", "opencv-python", "numpy", "pillow", "uvicorn"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+exclude = [
+    "tests/",
+    "scripts/",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "cv2.*",
+    "torch.*",
+    "transformers.*",
+    "PIL.*",
+]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/conftest.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

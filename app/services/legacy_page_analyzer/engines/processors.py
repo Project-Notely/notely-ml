@@ -2,25 +2,26 @@
 Concrete implementations of the abstract processors
 """
 
-import cv2
-import numpy as np
 from pathlib import Path
-from typing import Dict, Any, Optional, Union
-from PIL import Image
+from typing import Any, Dict, Optional, Union
+
+import cv2
 import easyocr
+import numpy as np
 import torch
 import torchvision.transforms as transforms
-from torchvision.models import resnet50, ResNet50_Weights
+from PIL import Image
+from torchvision.models import ResNet50_Weights, resnet50
 
 from ..interfaces.interfaces import (
-    OCRProcessor,
-    ImageClassifier,
     DocumentSegmenter,
+    ImageClassifier,
+    OCRProcessor,
     RegionExtractor,
     TableProcessor,
 )
 from ..main import UnstructuredSegmentationService
-from ..models.elements import ProcessingResult, DocumentElement
+from ..models.elements import DocumentElement, ProcessingResult
 
 
 class EasyOCRProcessor(OCRProcessor):
@@ -28,7 +29,7 @@ class EasyOCRProcessor(OCRProcessor):
 
     def __init__(self):
         self.reader = None
-        self.languages = ['en']
+        self.languages = ["en"]
 
     def initialize(self, languages: list[str] = None, **kwargs) -> bool:
         """Initialize EasyOCR"""

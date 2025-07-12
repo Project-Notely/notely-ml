@@ -2,13 +2,14 @@
 Document segmentation controller
 """
 
-from fastapi import UploadFile, HTTPException
-import tempfile
 import os
+import tempfile
 from pathlib import Path
 
-from app.services.page_segmentation.unstructuredio_processor import SegmentationService
+from fastapi import HTTPException, UploadFile
+
 from app.models.page_segmentation_models import SegmentationResult
+from app.services.page_segmentation.unstructuredio_processor import SegmentationService
 
 
 async def segment_document(

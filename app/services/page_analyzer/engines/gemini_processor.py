@@ -1,23 +1,26 @@
-from PIL import Image
-import google.generativeai as genai
-from dotenv import load_dotenv
+import difflib
 import os
+from typing import Literal, Optional
+
+import cv2
+import easyocr
+import google.generativeai as genai
+import numpy as np
+import pytesseract
+from dotenv import load_dotenv
+from PIL import Image
+
+from app.services.page_analyzer.engines.trocr_processor import TrOCRProcessor
 from app.services.page_analyzer.models.models import (
-    ProcessingResult,
     OCRResult,
+    ProcessingResult,
     TextBox,
     WordMatch,
 )
-import easyocr
-import numpy as np
-import cv2
-import difflib
-from typing import Optional, Literal
-import pytesseract
-from app.services.page_analyzer.engines.trocr_processor import TrOCRProcessor
 
 try:
     import paddleocr
+
     PADDLEOCR_AVAILABLE = True
 except ImportError:
     PADDLEOCR_AVAILABLE = False
@@ -25,6 +28,7 @@ except ImportError:
 load_dotenv(dotenv_path=".env.local")
 
 OCRBackend = Literal["easyocr", "trocr", "tesseract", "paddleocr"]
+
 
 class GeminiProcessor:
     def __init__(self, ocr_backend: OCRBackend = "easyocr"):
@@ -45,7 +49,7 @@ class GeminiProcessor:
             elif self.ocr_backend == "trocr":
                 self.trocr_processor = TrOCRProcessor(
                     model_type=kwargs.get("trocr_model_type", "handwritten_base"),
-                    device=kwargs.get("device", "cpu")
+                    device=kwargs.get("device", "cpu"),
                 )
                 if not self.trocr_processor.initialize():
                     print("❌ Failed to initialize TrOCR processor")
@@ -59,15 +63,18 @@ class GeminiProcessor:
                     return False
             elif self.ocr_backend == "paddleocr":
                 if not PADDLEOCR_AVAILABLE:
-                    print("❌ PaddleOCR not available. Install with: pip install paddleocr")
+                    print(
+                        "❌ PaddleOCR not available. Install with: pip install paddleocr"
+                    )
                     return False
                 self.paddleocr_reader = paddleocr.PaddleOCR(
-                    use_angle_cls=True, 
-                    lang='en'
+                    use_angle_cls=True, lang="en"
                 )
-            
+
             self.initialized = True
-            print(f"✅ Initialized GeminiProcessor with {self.ocr_backend.upper()} backend")
+            print(
+                f"✅ Initialized GeminiProcessor with {self.ocr_backend.upper()} backend"
+            )
             return True
         except Exception as e:
             print(f"❌ Error initializing GeminiProcessor: {e}")
@@ -88,13 +95,17 @@ class GeminiProcessor:
             # Step 1: extract text from image using Gemini (ALWAYS TRUSTED)
             gemini_text = self._extract_text_with_gemini(image)
             if not gemini_text:
-                return ProcessingResult(success=False, error="No text extracted from image")
+                return ProcessingResult(
+                    success=False, error="No text extracted from image"
+                )
 
-            print(f"📝 Gemini extracted: '{gemini_text[:100]}{'...' if len(gemini_text) > 100 else ''}'")
+            print(
+                f"📝 Gemini extracted: '{gemini_text[:100]}{'...' if len(gemini_text) > 100 else ''}'"
+            )
 
             # Step 2: convert PIL to numpy/OpenCV format
             image_np = np.array(image)
-            
+
             # Handle different image formats properly
             if len(image_np.shape) == 3:
                 if image_np.shape[2] == 4:  # RGBA
@@ -112,7 +123,9 @@ class GeminiProcessor:
             word_positions = self._get_word_positions_with_backend(image_cv, image)
 
             # Step 4: match Gemini text with OCR positions
-            matched_words = self._match_gemini_with_positions(gemini_text, word_positions)
+            matched_words = self._match_gemini_with_positions(
+                gemini_text, word_positions
+            )
 
             # Step 5: create result objects
             text_boxes = []
@@ -120,21 +133,27 @@ class GeminiProcessor:
                 text_box = TextBox(
                     text=match.gemini_word,  # Use the original Gemini word
                     confidence=match.confidence,
-                    bbox=match.bbox
+                    bbox=match.bbox,
                 )
                 text_boxes.append(text_box)
 
             # Calculate stats
-            avg_confidence = sum(match.confidence for match in matched_words) / len(matched_words) if matched_words else 0
+            avg_confidence = (
+                sum(match.confidence for match in matched_words) / len(matched_words)
+                if matched_words
+                else 0
+            )
 
             ocr_result = OCRResult(
                 full_text=gemini_text,
                 average_confidence=avg_confidence,
                 total_words=len(matched_words),
-                text_boxes=text_boxes
+                text_boxes=text_boxes,
             )
 
-            print(f"🎯 Successfully processed {len(matched_words)} words with {self.ocr_backend.upper()}")
+            print(
+                f"🎯 Successfully processed {len(matched_words)} words with {self.ocr_backend.upper()}"
+            )
             return ProcessingResult(success=True, result=ocr_result)
 
         except Exception as e:
@@ -143,7 +162,9 @@ class GeminiProcessor:
 
     ####### BACKEND-SPECIFIC WORD POSITIONING #######
 
-    def _get_word_positions_with_backend(self, image_cv: np.ndarray, image_pil: Image.Image) -> list[dict]:
+    def _get_word_positions_with_backend(
+        self, image_cv: np.ndarray, image_pil: Image.Image
+    ) -> list[dict]:
         """Get word positions using the selected OCR backend"""
         if self.ocr_backend == "easyocr":
             return self._get_word_positions_easyocr(image_cv)
@@ -171,7 +192,7 @@ class GeminiProcessor:
 
             # Split lines into individual words
             word_detections = []
-            
+
             for i, result in enumerate(results):
                 try:
                     # Handle different EasyOCR return formats
@@ -182,23 +203,25 @@ class GeminiProcessor:
                         confidence = 0.8  # Default confidence
                     else:
                         continue
-                    
+
                     # Get bounding box
                     x_coords = [point[0] for point in bbox_points]
                     y_coords = [point[1] for point in bbox_points]
-                    
+
                     bbox_x = int(min(x_coords))
                     bbox_y = int(min(y_coords))
                     bbox_w = int(max(x_coords) - min(x_coords))
                     bbox_h = int(max(y_coords) - min(y_coords))
-                    
+
                     # Check if this is a line (very wide) or already a word (narrow)
                     if bbox_w > 200:  # If wider than 200px, treat as line and split
                         words = text.strip().split()
                         if words:
                             # Extract the line region from image for analysis
-                            line_region = image_cv[bbox_y:bbox_y+bbox_h, bbox_x:bbox_x+bbox_w]
-                            
+                            line_region = image_cv[
+                                bbox_y : bbox_y + bbox_h, bbox_x : bbox_x + bbox_w
+                            ]
+
                             # Use morphological analysis to find actual word boundaries
                             word_positions = self._find_actual_word_boundaries(
                                 line_region, words, bbox_x, bbox_y, confidence
@@ -206,20 +229,22 @@ class GeminiProcessor:
                             word_detections.extend(word_positions)
                     else:
                         # Use as individual word
-                        word_detections.append({
-                            'text': text.strip(),
-                            'bbox': [bbox_x, bbox_y, bbox_w, bbox_h],
-                            'confidence': confidence * 100,
-                            'center_x': bbox_x + bbox_w // 2,
-                            'center_y': bbox_y + bbox_h // 2
-                        })
-                    
+                        word_detections.append(
+                            {
+                                "text": text.strip(),
+                                "bbox": [bbox_x, bbox_y, bbox_w, bbox_h],
+                                "confidence": confidence * 100,
+                                "center_x": bbox_x + bbox_w // 2,
+                                "center_y": bbox_y + bbox_h // 2,
+                            }
+                        )
+
                 except Exception as e:
                     continue
-            
+
             # Sort by reading order
             word_detections.sort(key=lambda d: (d["center_y"] // 20, d["center_x"]))
-            
+
             return word_detections
 
         except Exception as e:
@@ -231,21 +256,23 @@ class GeminiProcessor:
         try:
             # Use TrOCR's built-in word detection
             result = self.trocr_processor.process_text_region(image_cv)
-            
+
             if not result.success:
                 print(f"❌ TrOCR processing failed: {result.error}")
                 return []
-            
+
             word_detections = []
             for text_box in result.result.text_boxes:
-                word_detections.append({
-                    'text': text_box.text,
-                    'bbox': text_box.bbox,
-                    'confidence': text_box.confidence,
-                    'center_x': text_box.bbox[0] + text_box.bbox[2] // 2,
-                    'center_y': text_box.bbox[1] + text_box.bbox[3] // 2
-                })
-            
+                word_detections.append(
+                    {
+                        "text": text_box.text,
+                        "bbox": text_box.bbox,
+                        "confidence": text_box.confidence,
+                        "center_x": text_box.bbox[0] + text_box.bbox[2] // 2,
+                        "center_y": text_box.bbox[1] + text_box.bbox[3] // 2,
+                    }
+                )
+
             print(f"🔤 TrOCR detected {len(word_detections)} words")
             return word_detections
 
@@ -261,35 +288,39 @@ class GeminiProcessor:
                 image_rgb = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
             else:
                 image_rgb = image_cv
-            
+
             # Get word-level data from Tesseract
             data = pytesseract.image_to_data(
-                image_rgb, 
+                image_rgb,
                 output_type=pytesseract.Output.DICT,
-                config='--psm 6'  # Uniform block of text
+                config="--psm 6",  # Uniform block of text
             )
-            
+
             word_detections = []
-            for i in range(len(data['text'])):
-                text = data['text'][i].strip()
-                if text and int(data['conf'][i]) > 0:  # Filter out empty and low-confidence
-                    x = data['left'][i]
-                    y = data['top'][i]
-                    w = data['width'][i]
-                    h = data['height'][i]
-                    conf = int(data['conf'][i])
-                    
-                    word_detections.append({
-                        'text': text,
-                        'bbox': [x, y, w, h],
-                        'confidence': conf,
-                        'center_x': x + w // 2,
-                        'center_y': y + h // 2
-                    })
-            
+            for i in range(len(data["text"])):
+                text = data["text"][i].strip()
+                if (
+                    text and int(data["conf"][i]) > 0
+                ):  # Filter out empty and low-confidence
+                    x = data["left"][i]
+                    y = data["top"][i]
+                    w = data["width"][i]
+                    h = data["height"][i]
+                    conf = int(data["conf"][i])
+
+                    word_detections.append(
+                        {
+                            "text": text,
+                            "bbox": [x, y, w, h],
+                            "confidence": conf,
+                            "center_x": x + w // 2,
+                            "center_y": y + h // 2,
+                        }
+                    )
+
             # Sort by reading order
             word_detections.sort(key=lambda d: (d["center_y"] // 20, d["center_x"]))
-            
+
             print(f"🔤 Tesseract detected {len(word_detections)} words")
             return word_detections
 
@@ -305,58 +336,71 @@ class GeminiProcessor:
                 image_rgb = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
             else:
                 image_rgb = cv2.cvtColor(image_cv, cv2.COLOR_GRAY2RGB)
-            
+
             # Run PaddleOCR
             results = self.paddleocr_reader.ocr(image_rgb, cls=True)
-            
+
             word_detections = []
             if results and results[0]:
                 for line in results[0]:
                     if len(line) >= 2:
                         bbox_points = line[0]
                         text_info = line[1]
-                        text = text_info[0] if isinstance(text_info, (list, tuple)) else str(text_info)
+                        text = (
+                            text_info[0]
+                            if isinstance(text_info, (list, tuple))
+                            else str(text_info)
+                        )
                         confidence = text_info[1] if len(text_info) > 1 else 0.8
-                        
+
                         # Convert bbox points to rectangle
                         x_coords = [point[0] for point in bbox_points]
                         y_coords = [point[1] for point in bbox_points]
-                        
+
                         bbox_x = int(min(x_coords))
                         bbox_y = int(min(y_coords))
                         bbox_w = int(max(x_coords) - min(x_coords))
                         bbox_h = int(max(y_coords) - min(y_coords))
-                        
+
                         # Split multi-word lines
                         words = text.strip().split()
                         if len(words) > 1 and bbox_w > 100:  # Multi-word line
                             # Estimate word positions within the line
                             total_chars = sum(len(word) for word in words)
                             x_offset = 0
-                            
+
                             for word in words:
                                 word_width = int((len(word) / total_chars) * bbox_w)
-                                word_detections.append({
-                                    'text': word,
-                                    'bbox': [bbox_x + x_offset, bbox_y, word_width, bbox_h],
-                                    'confidence': confidence * 100,
-                                    'center_x': bbox_x + x_offset + word_width // 2,
-                                    'center_y': bbox_y + bbox_h // 2
-                                })
+                                word_detections.append(
+                                    {
+                                        "text": word,
+                                        "bbox": [
+                                            bbox_x + x_offset,
+                                            bbox_y,
+                                            word_width,
+                                            bbox_h,
+                                        ],
+                                        "confidence": confidence * 100,
+                                        "center_x": bbox_x + x_offset + word_width // 2,
+                                        "center_y": bbox_y + bbox_h // 2,
+                                    }
+                                )
                                 x_offset += word_width + 10  # Add spacing
                         else:
                             # Single word
-                            word_detections.append({
-                                'text': text,
-                                'bbox': [bbox_x, bbox_y, bbox_w, bbox_h],
-                                'confidence': confidence * 100,
-                                'center_x': bbox_x + bbox_w // 2,
-                                'center_y': bbox_y + bbox_h // 2
-                            })
-            
+                            word_detections.append(
+                                {
+                                    "text": text,
+                                    "bbox": [bbox_x, bbox_y, bbox_w, bbox_h],
+                                    "confidence": confidence * 100,
+                                    "center_x": bbox_x + bbox_w // 2,
+                                    "center_y": bbox_y + bbox_h // 2,
+                                }
+                            )
+
             # Sort by reading order
             word_detections.sort(key=lambda d: (d["center_y"] // 20, d["center_x"]))
-            
+
             print(f"🔤 PaddleOCR detected {len(word_detections)} words")
             return word_detections
 
@@ -383,8 +427,14 @@ class GeminiProcessor:
             print(f"Error extracting text with Gemini: {e}")
             return ""
 
-    def _find_actual_word_boundaries(self, line_region: np.ndarray, words: list[str], 
-                                   line_x: int, line_y: int, line_confidence: float) -> list[dict]:
+    def _find_actual_word_boundaries(
+        self,
+        line_region: np.ndarray,
+        words: list[str],
+        line_x: int,
+        line_y: int,
+        line_confidence: float,
+    ) -> list[dict]:
         """Use image analysis to find actual word boundaries within a text line"""
         try:
             # Convert to grayscale if needed
@@ -392,212 +442,255 @@ class GeminiProcessor:
                 gray = cv2.cvtColor(line_region, cv2.COLOR_BGR2GRAY)
             else:
                 gray = line_region.copy()
-            
+
             # Binary threshold to get text pixels
-            _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-            
+            _, binary = cv2.threshold(
+                gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+            )
+
             # Create morphological kernel to connect characters within words but not between words
-            kernel_width = max(2, min(6, line_region.shape[1] // 200))  # Much smaller, adaptive kernel size
+            kernel_width = max(
+                2, min(6, line_region.shape[1] // 200)
+            )  # Much smaller, adaptive kernel size
             kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_width, 1))
-            
+
             # Close operation to connect characters within words
             closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
-            
+
             # Find contours (word regions)
-            contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
+            contours, _ = cv2.findContours(
+                closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            )
+
             # Filter and sort contours by x-coordinate
             word_contours = []
-            
+
             for i, contour in enumerate(contours):
                 x, y, w, h = cv2.boundingRect(contour)
-                
+
                 # Filter out noise (too small regions)
                 if w > 8 and h > 5:  # Minimum word size
                     word_contours.append([x, y, w, h])
-            
+
             # Sort by x-coordinate (left to right)
             word_contours.sort(key=lambda box: box[0])
-            
+
             # Match words to contours
             word_detections = []
-            
+
             if len(word_contours) == len(words):
                 # Perfect match - use detected contours directly
                 for i, (word, contour_box) in enumerate(zip(words, word_contours)):
                     rel_x, rel_y, w, h = contour_box
                     abs_x = line_x + rel_x
                     abs_y = line_y + rel_y
-                    
-                    word_detections.append({
-                        'text': word,
-                        'bbox': [abs_x, abs_y, w, h],
-                        'confidence': line_confidence * 100,
-                        'center_x': abs_x + w // 2,
-                        'center_y': abs_y + h // 2
-                    })
-                    
+
+                    word_detections.append(
+                        {
+                            "text": word,
+                            "bbox": [abs_x, abs_y, w, h],
+                            "confidence": line_confidence * 100,
+                            "center_x": abs_x + w // 2,
+                            "center_y": abs_y + h // 2,
+                        }
+                    )
+
             elif len(word_contours) > len(words):
                 # More contours than words - merge nearby contours
-                merged_contours = self._merge_contours_to_words(word_contours, len(words))
-                
+                merged_contours = self._merge_contours_to_words(
+                    word_contours, len(words)
+                )
+
                 for i, (word, contour_box) in enumerate(zip(words, merged_contours)):
                     rel_x, rel_y, w, h = contour_box
                     abs_x = line_x + rel_x
                     abs_y = line_y + rel_y
-                    
-                    word_detections.append({
-                        'text': word,
-                        'bbox': [abs_x, abs_y, w, h],
-                        'confidence': line_confidence * 100,
-                        'center_x': abs_x + w // 2,
-                        'center_y': abs_y + h // 2
-                    })
-                    
+
+                    word_detections.append(
+                        {
+                            "text": word,
+                            "bbox": [abs_x, abs_y, w, h],
+                            "confidence": line_confidence * 100,
+                            "center_x": abs_x + w // 2,
+                            "center_y": abs_y + h // 2,
+                        }
+                    )
+
             else:
                 # Fewer contours than words - split larger contours
                 word_detections = self._split_contours_to_words(
                     word_contours, words, line_x, line_y, line_confidence
                 )
-            
+
             return word_detections
-            
+
         except Exception as e:
             print(f"❌ Error in _find_actual_word_boundaries: {e}")
             # Fallback to old method
-            return self._split_line_into_words(words, line_x, line_y, 
-                                             line_region.shape[1], line_region.shape[0], line_confidence)
+            return self._split_line_into_words(
+                words,
+                line_x,
+                line_y,
+                line_region.shape[1],
+                line_region.shape[0],
+                line_confidence,
+            )
 
-    def _merge_contours_to_words(self, contours: list[list[int]], target_count: int) -> list[list[int]]:
+    def _merge_contours_to_words(
+        self, contours: list[list[int]], target_count: int
+    ) -> list[list[int]]:
         """Merge nearby contours to match the target word count"""
         if len(contours) <= target_count:
             return contours
-        
+
         merged = contours.copy()
-        
+
         while len(merged) > target_count:
             # Find the pair with smallest gap
-            min_gap = float('inf')
+            min_gap = float("inf")
             merge_idx = 0
-            
+
             for i in range(len(merged) - 1):
-                gap = merged[i + 1][0] - (merged[i][0] + merged[i][2])  # distance between contours
+                gap = merged[i + 1][0] - (
+                    merged[i][0] + merged[i][2]
+                )  # distance between contours
                 if gap < min_gap:
                     min_gap = gap
                     merge_idx = i
-            
+
             # Merge the pair
             box1 = merged[merge_idx]
             box2 = merged[merge_idx + 1]
-            
+
             merged_x = box1[0]
             merged_y = min(box1[1], box2[1])
             merged_w = (box2[0] + box2[2]) - box1[0]
             merged_h = max(box1[1] + box1[3], box2[1] + box2[3]) - merged_y
-            
+
             merged[merge_idx] = [merged_x, merged_y, merged_w, merged_h]
             merged.pop(merge_idx + 1)
-        
+
         return merged
 
-    def _split_contours_to_words(self, contours: list[list[int]], words: list[str],
-                                line_x: int, line_y: int, line_confidence: float) -> list[dict]:
+    def _split_contours_to_words(
+        self,
+        contours: list[list[int]],
+        words: list[str],
+        line_x: int,
+        line_y: int,
+        line_confidence: float,
+    ) -> list[dict]:
         """Split larger contours when we have fewer contours than words"""
         word_detections = []
-        
+
         if not contours:
             # No contours found, fall back to estimation
-            return self._split_line_into_words(words, line_x, line_y, 500, 30, line_confidence)
-        
+            return self._split_line_into_words(
+                words, line_x, line_y, 500, 30, line_confidence
+            )
+
         # Calculate how many words per contour on average
         words_per_contour = len(words) / len(contours)
-        
+
         word_idx = 0
         for contour_box in contours:
             rel_x, rel_y, w, h = contour_box
-            
+
             # Determine how many words this contour should contain
             words_in_this_contour = round(words_per_contour)
             remaining_words = len(words) - word_idx
             remaining_contours = len(contours) - contours.index(contour_box)
-            
+
             if remaining_contours == 1:
                 words_in_this_contour = remaining_words
-            
+
             # Split this contour among the words
             for i in range(words_in_this_contour):
                 if word_idx >= len(words):
                     break
-                    
+
                 word = words[word_idx]
-                
+
                 # Calculate position within contour
                 word_width = w // words_in_this_contour
                 word_x = rel_x + (i * word_width)
-                
+
                 abs_x = line_x + word_x
                 abs_y = line_y + rel_y
-                
-                word_detections.append({
-                    'text': word,
-                    'bbox': [abs_x, abs_y, word_width, h],
-                    'confidence': line_confidence * 100,
-                    'center_x': abs_x + word_width // 2,
-                    'center_y': abs_y + h // 2
-                })
-                
+
+                word_detections.append(
+                    {
+                        "text": word,
+                        "bbox": [abs_x, abs_y, word_width, h],
+                        "confidence": line_confidence * 100,
+                        "center_x": abs_x + word_width // 2,
+                        "center_y": abs_y + h // 2,
+                    }
+                )
+
                 word_idx += 1
-        
+
         return word_detections
 
-    def _split_line_into_words(self, words: list[str], line_x: int, line_y: int, 
-                              line_w: int, line_h: int, line_confidence: float) -> list[dict]:
+    def _split_line_into_words(
+        self,
+        words: list[str],
+        line_x: int,
+        line_y: int,
+        line_w: int,
+        line_h: int,
+        line_confidence: float,
+    ) -> list[dict]:
         """Split a detected line into individual word bounding boxes"""
         word_detections = []
-        
+
         if not words:
             return word_detections
-        
+
         # Calculate total character count for proportional spacing
         total_chars = sum(len(word) for word in words)
         total_spaces = len(words) - 1  # Spaces between words
-        
+
         # Estimate character width (leaving some margin)
         usable_width = line_w * 0.95  # Use 95% of line width to account for margins
-        char_width = usable_width / (total_chars + total_spaces * 0.5) if total_chars > 0 else 12
-        
+        char_width = (
+            usable_width / (total_chars + total_spaces * 0.5) if total_chars > 0 else 12
+        )
+
         current_x = line_x + (line_w * 0.025)  # Start with 2.5% margin
-        
+
         for word in words:
             # Calculate word width based on character count
             word_width = len(word) * char_width
-            
+
             # Adjust for character types (simple heuristic)
-            wide_chars = sum(1 for c in word if c in 'mwMW@')
-            narrow_chars = sum(1 for c in word if c in 'iIlj')
-            
+            wide_chars = sum(1 for c in word if c in "mwMW@")
+            narrow_chars = sum(1 for c in word if c in "iIlj")
+
             if wide_chars > narrow_chars:
                 word_width *= 1.1
             elif narrow_chars > wide_chars:
                 word_width *= 0.9
-            
+
             # Ensure minimum width
             word_width = max(word_width, 8)
-            
+
             # Create word detection
             word_detection = {
-                'text': word,
-                'bbox': [int(current_x), line_y, int(word_width), line_h],
-                'confidence': line_confidence * 100,  # Convert to 0-100
-                'center_x': int(current_x + word_width // 2),
-                'center_y': line_y + line_h // 2
+                "text": word,
+                "bbox": [int(current_x), line_y, int(word_width), line_h],
+                "confidence": line_confidence * 100,  # Convert to 0-100
+                "center_x": int(current_x + word_width // 2),
+                "center_y": line_y + line_h // 2,
             }
-            
+
             word_detections.append(word_detection)
-            
+
             # Move to next word position (add word width + space)
-            current_x += word_width + (char_width * 0.5)  # Half-character space between words
-        
+            current_x += word_width + (
+                char_width * 0.5
+            )  # Half-character space between words
+
         return word_detections
 
     def _match_gemini_with_positions(
@@ -616,7 +709,7 @@ class GeminiProcessor:
         # Method 2: fuzzy matching for complex cases
         else:
             matches = self._fuzzy_word_matching(gemini_words, ocr_detections)
-        
+
         return matches
 
     def _direct_word_matching(

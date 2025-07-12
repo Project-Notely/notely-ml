@@ -2,8 +2,9 @@
 Document segmentation API routes
 """
 
-from fastapi import APIRouter, UploadFile, File, Query
 from typing import List
+
+from fastapi import APIRouter, File, Query, UploadFile
 
 from app.controllers import segmentation_controller
 from app.models.page_segmentation_models import SegmentationResult

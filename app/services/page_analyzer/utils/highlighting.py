@@ -1,10 +1,12 @@
-from typing import Tuple, Optional
+import os
+from pathlib import Path
+from typing import Optional, Tuple
+
 import cv2
 import numpy as np
-import os
 from PIL import Image, ImageDraw, ImageFont
-from pathlib import Path
-from app.services.page_analyzer.models.models import TextBox, OCRResult
+
+from app.services.page_analyzer.models.models import OCRResult, TextBox
 from app.services.page_analyzer.utils.search import search_text_in_image
 
 
@@ -25,17 +27,17 @@ def save_highlighted_image(
     text_boxes: list[TextBox],
     output_path: str,
     title: str = None,
-    quality: int = 95
+    quality: int = 95,
 ) -> bool:
     """Enhanced save highlighted image function with PIL support and title
-    
+
     Args:
         image: PIL Image
         text_boxes: List of TextBox objects
         output_path: Path to save image
         title: Optional title to add to the image
         quality: Image quality (0-100)
-    
+
     Returns:
         True if successful, False otherwise
     """
@@ -43,7 +45,7 @@ def save_highlighted_image(
         # Create a copy to work with
         img_copy = image.copy()
         draw = ImageDraw.Draw(img_copy)
-        
+
         # Try to load a font
         try:
             font = ImageFont.truetype("Arial.ttf", 16)
@@ -51,15 +53,15 @@ def save_highlighted_image(
         except:
             font = ImageFont.load_default()
             title_font = ImageFont.load_default()
-        
+
         # Add title if provided
         if title:
             draw.text((10, 10), title, fill="black", font=title_font)
-        
+
         # Draw text boxes
         for text_box in text_boxes:
             x, y, w, h = text_box.bbox
-            
+
             # Choose color based on confidence
             if text_box.confidence >= 80:
                 color = "green"
@@ -67,31 +69,34 @@ def save_highlighted_image(
                 color = "orange"
             else:
                 color = "red"
-            
+
             # Draw rectangle
             draw.rectangle([x, y, x + w, y + h], outline=color, width=2)
-            
+
             # Draw text label
             label = f"{text_box.text} ({text_box.confidence:.1f}%)"
-            
+
             # Position label above box if possible
             label_y = max(y - 25, 10)
-            
+
             # Draw background for text
             bbox = draw.textbbox((x, label_y), label, font=font)
             draw.rectangle(bbox, fill="white", outline="black")
-            
+
             # Draw text
             draw.text((x, label_y), label, fill="black", font=font)
-        
+
         # Ensure output directory exists
-        os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
-        
+        os.makedirs(
+            os.path.dirname(output_path) if os.path.dirname(output_path) else ".",
+            exist_ok=True,
+        )
+
         # Save image
         img_copy.save(output_path, quality=quality)
-        
+
         return True
-        
+
     except Exception as e:
         print(f"Error saving highlighted image: {e}")
         return False
@@ -183,7 +188,7 @@ def create_highlighted_image(
     result = cv2.addWeighted(
         result, 1 - highlight_opacity, overlay, highlight_opacity, 0
     )
-    
+
     return result
 
 

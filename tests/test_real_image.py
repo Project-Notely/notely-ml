@@ -1,11 +1,12 @@
 import sys
-
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-import cv2
 import json
+
+import cv2
+
 from app.services.page_analyzer.engines.trocr_processor import TrOCRProcessor
 from app.services.page_analyzer.utils.highlighting import (
     create_highlighted_image,

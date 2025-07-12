@@ -1,21 +1,21 @@
+from typing import Tuple
+
 import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
 from PIL import Image
-from transformers import TrOCRProcessor as HFTrOCRProcessor, VisionEncoderDecoderModel
-
-from typing import Tuple
+from transformers import TrOCRProcessor as HFTrOCRProcessor
+from transformers import VisionEncoderDecoderModel
 
 from app.services.page_analyzer.models.models import (
-    TextBox,
     OCRResult,
     ProcessingResult,
+    TextBox,
 )
 
 
 class TrOCRProcessor:
-
     MODELS = {
         "handwritten_small": "microsoft/trocr-small-handwritten",
         "handwritten_base": "microsoft/trocr-base-handwritten",

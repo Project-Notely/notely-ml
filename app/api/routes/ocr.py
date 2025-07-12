@@ -1,6 +1,7 @@
 from fastapi import APIRouter
-from app.services.simple_ocr_service.main import OCRService
+
 from app.models.api_models import OCRResponse
+from app.services.simple_ocr_service.main import OCRService
 
 router = APIRouter()
 ocr_service = OCRService()

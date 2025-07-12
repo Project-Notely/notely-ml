@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Any, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 
 @dataclass
@@ -33,7 +33,8 @@ class TextBox:
     confidence: float
     bbox: Tuple[int, int, int, int]  # (x, y, width, height)
     word_level: bool = False
-    
+
+
 @dataclass
 class OCRResult:
     """Result for OCR processing"""

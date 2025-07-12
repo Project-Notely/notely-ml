@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, Union
 from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 import numpy as np
 from PIL import Image

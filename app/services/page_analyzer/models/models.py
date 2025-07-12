@@ -1,14 +1,17 @@
 from dataclasses import dataclass
 from typing import Optional
 
+
 @dataclass
 class WordMatch:
     """Represents a matched word with its bounding box"""
+
     word: str
     bbox: list[int]
     confidence: float
     gemini_word: str
     similarity: float
+
 
 @dataclass
 class TextBox:

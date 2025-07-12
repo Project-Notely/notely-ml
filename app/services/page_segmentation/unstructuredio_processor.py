@@ -2,23 +2,23 @@
 Document segmentation service using unstructured.io
 """
 
-from typing import Any, Optional, Union
-from pathlib import Path
-import tempfile
-import os
-from PIL import Image
-import numpy as np
 import logging
+import os
+import tempfile
+from pathlib import Path
+from typing import Any, Optional, Union
 
-from unstructured.partition.auto import partition
+import numpy as np
+from PIL import Image
 from unstructured.documents.elements import Element
+from unstructured.partition.auto import partition
 from unstructured.partition.utils.constants import PartitionStrategy
 
 from app.models.page_segmentation_models import (
-    SegmentationResult,
-    DocumentSegment,
-    SegmentType,
     BoundingBox,
+    DocumentSegment,
+    SegmentationResult,
+    SegmentType,
 )
 
 logger = logging.getLogger(__name__)

@@ -1,15 +1,17 @@
-import torch
-from transformers import TrOCRProcessor as HFTrOCRProcessor, VisionEncoderDecoderModel
+import logging
+from typing import Any, Dict, Optional, Union
+
 import cv2
 import numpy as np
+import torch
 from PIL import Image
-from typing import Optional, Dict, Any, Union
-import logging
+from transformers import TrOCRProcessor as HFTrOCRProcessor
+from transformers import VisionEncoderDecoderModel
 
 from ..interfaces.interfaces import OCRProcessor
-from ..models.results import ProcessingResult
-from ..models.elements import TextBox, OCRResult
 from ..models.config import TrOCRConfig
+from ..models.elements import OCRResult, TextBox
+from ..models.results import ProcessingResult
 
 
 class TrOCRProcessor(OCRProcessor):
@@ -380,7 +382,7 @@ class TrOCRProcessor(OCRProcessor):
     def get_supported_languages(self) -> list[str]:
         """
         Get list of supported languages
-        
+
         Returns:
             List of supported languages (TrOCR supports multiple languages)
         """
@@ -389,29 +391,29 @@ class TrOCRProcessor(OCRProcessor):
         return [
             "en",  # English (primary)
             "auto",  # Auto-detect
-            "multilingual"  # Mixed languages
+            "multilingual",  # Mixed languages
         ]
 
     def cleanup(self) -> None:
         """Clean up resources used by the TrOCR processor"""
         try:
-            if hasattr(self, 'model') and self.model is not None:
+            if hasattr(self, "model") and self.model is not None:
                 # Move model off GPU if it was on GPU
-                if hasattr(self.model, 'cpu'):
+                if hasattr(self.model, "cpu"):
                     self.model.cpu()
                 # Clear model reference
                 self.model = None
-                
-            if hasattr(self, 'processor') and self.processor is not None:
+
+            if hasattr(self, "processor") and self.processor is not None:
                 # Clear processor reference
                 self.processor = None
-                
+
             # Clear CUDA cache if available
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
-                
+
             self.initialized = False
             self.logger.info("TrOCR processor resources cleaned up")
-            
+
         except Exception as e:
             self.logger.warning(f"Error during TrOCR cleanup: {e}")
