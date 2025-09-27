@@ -1,6 +1,6 @@
-"""Document segmentation API routes."""
+import io
 
-from fastapi import APIRouter, File, Query, UploadFile
+from fastapi import APIRouter, File, UploadFile, Form
 
 from app.controllers import segmentation_controller
 from app.models.page_segmentation_models import SegmentationResult
@@ -11,24 +11,19 @@ router = APIRouter()
 @router.post("/segment", response_model=SegmentationResult)
 async def segment_document(
     file: UploadFile = File(...),
-    strategy: str = Query(
-        "hi_res", description="Partitioning strategy (fast, hi_res, auto)"
-    ),
-    extract_images: bool = Query(True, description="Whether to extract images"),
-    infer_table_structure: bool = Query(
-        True, description="Whether to infer table structure"
-    ),
+    query: str = Form(...),
 ) -> SegmentationResult:
-    """Segment a document into different element types."""
+    """
+    Handles the API request for document segmentation.
+
+    Args:
+        file: The uploaded document image.
+        query: The user's natural language query from the form data.
+
+    Returns:
+        The segmentation result from the controller.
+    """
     return await segmentation_controller.segment_document(
-        file=file,
-        strategy=strategy,
-        extract_images=extract_images,
-        infer_table_structure=infer_table_structure,
+        file,
+        query,
     )
-
-
-@router.get("/supported-formats")
-async def get_supported_formats() -> list[str]:
-    """Get list of supported file formats."""
-    return await segmentation_controller.get_supported_formats()

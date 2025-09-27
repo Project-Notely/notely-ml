@@ -17,6 +17,8 @@ fastapi = "^0.115.12"
 pydantic = "^2.11.5"
 uvicorn = "^0.34.3"
 pymongo = "^4.10.1"
+langchain = "^0.2.1"
+langchain-google-genai = "^1.0.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
@@ -24,26 +26,15 @@ pytest-asyncio = "^0.25.0"
 pytest-mock = "^3.14.0"
 pytest-cov = "^6.0.0"
 ruff = "^0.8.0"
-black = "^24.0.0"
-isort = "^5.13.0"
 mypy = "^1.11.0"
 pre-commit = "^4.0.0"
 
 [tool.poetry.scripts]
+dev = "scripts.dev:main"
 test = "scripts.test:main"
-test-cov = "scripts.test:main_with_coverage"
-test-specific = "scripts.test:run_specific_test"
 lint = "scripts.lint:main"
-lint-fix = "scripts.lint:main --fix"
-lint-diff = "scripts.lint:lint_diff"
 format = "scripts.format:main"
-format-check = "scripts.format:check"
-format-file = "scripts.format:format_file"
 type-check = "scripts.type_check:main"
-type-check-strict = "scripts.type_check:check_strict"
-type-check-file = "scripts.type_check:check_file"
-dev-setup = "scripts.dev_setup:main"
-dev-clean = "scripts.dev_setup:clean"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -57,9 +48,6 @@ python_functions = ["test_*"]
 addopts = [
     "-v",
     "--tb=short",
-    "--cov=app",
-    "--cov-report=term-missing",
-    "--cov-report=html:output/htmlcov",
     "--asyncio-mode=auto"
 ]
 markers = [
@@ -123,34 +111,6 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
-
-[tool.black]
-line-length = 88
-target-version = ['py312']
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.venv
-  | venv
-  | \.tox
-  | \.eggs
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
-
-[tool.isort]
-profile = "black"
-line_length = 88
-known_first_party = ["app"]
-known_third_party = ["pytest", "pydantic", "fastapi", "pymongo", "torch", "transformers", "opencv-python", "numpy", "pillow", "uvicorn"]
 
 [tool.mypy]
 python_version = "3.12"

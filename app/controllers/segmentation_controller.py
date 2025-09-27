@@ -1,65 +1,37 @@
-"""Document segmentation controller."""
-
-import os
-import tempfile
+import io
 
 from fastapi import HTTPException, UploadFile
+from PIL import Image
 
-from app.models.segmentation_models import SegmentationResult
-from app.services.segmentation_service import SegmentationService
+from app.models.page_segmentation_models import SegmentationResult
+from app.services.page_segmentation.gemini_segmentor import GeminiSegmentor
+from app.services.query_parser import QueryParser
 
 
-async def segment_document(
-    file: UploadFile,
-    strategy: str = "hi_res",
-    extract_images: bool = True,
-    infer_table_structure: bool = True,
-) -> SegmentationResult:
-    """Segment uploaded document.
-
-    Args:
-        file: Uploaded file
-        strategy: Partitioning strategy
-        extract_images: Whether to extract images
-        infer_table_structure: Whether to infer table structure
-
-    Returns:
-        SegmentationResult: Segmentation results
+async def segment_document(file: UploadFile, query: str) -> SegmentationResult:
+    """Orchestrates the document segmentation by first parsing the query
+    and then executing the segmentation.
     """
-    temp_path = None
+    
     try:
-        # Validate file
-        if not file.filename:
-            raise HTTPException(status_code=400, detail="No file provided")
+        # 1. Parse the user's natural language query
+        parser = QueryParser()
+        structured_query = await parser.parse(user_query=query)
 
-        # Save uploaded file temporarily
-        with tempfile.NamedTemporaryFile(
-            delete=False, suffix=f"_{file.filename}"
-        ) as temp_file:
-            content = await file.read()
-            temp_file.write(content)
-            temp_path = temp_file.name
+        # 2. Read the image file
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
 
-        # Create segmentation service and process
-        segmentation_service = SegmentationService()
-        result = await segmentation_service.segment_document(
-            file_path=temp_path,
-            strategy=strategy,
-            extract_images=extract_images,
-            infer_table_structure=infer_table_structure,
+        # 3. Segment the document using the structured query
+        segmentor = GeminiSegmentor()
+        bbox_data = segmentor.segment(image, extracted_query=structured_query.query)
+
+        return SegmentationResult(
+            bbox_data=bbox_data,
         )
-
-        return result
-
+    except ValueError as e:
+        # Catch specific value errors, e.g., from the segmentor
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        return SegmentationResult(success=False, error=str(e), segments=[])
-    finally:
-        # Clean up temp file
-        if temp_path and os.path.exists(temp_path):
-            os.unlink(temp_path)
-
-
-async def get_supported_formats() -> list[str]:
-    """Get list of supported file formats."""
-    service = SegmentationService()
-    return service.get_supported_formats()
+        # General exception for other errors
+        raise HTTPException(status_code=500, detail=f"Failed to process request: {e}")
