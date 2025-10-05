@@ -1,4 +1,4 @@
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from app.core.config import settings
@@ -24,7 +24,7 @@ class QueryParser:
         )
         self.structured_llm = llm.with_structured_output(ExtractionQuery)
 
-    async def parse(self, user_query: str) -> ExtractionQuery:
+    async def execute(self, user_query: str) -> ExtractionQuery:
         """Parses the user's query using a structured LLM call.
 
         Args:

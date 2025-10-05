@@ -13,16 +13,6 @@ async def segment_document(
     file: UploadFile = File(...),
     query: str = Form(...),
 ) -> SegmentationResult:
-    """
-    Handles the API request for document segmentation.
-
-    Args:
-        file: The uploaded document image.
-        query: The user's natural language query from the form data.
-
-    Returns:
-        The segmentation result from the controller.
-    """
     return await segmentation_controller.segment_document(
         file,
         query,

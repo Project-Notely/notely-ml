@@ -7,7 +7,7 @@ from app.services.query_parser.query_parser import QueryParser
 async def test_query_parser():
     try:
         parser = QueryParser()
-        query = await parser.parse(
+        query = await parser.execute(
             "i want you to find the main title and the first paragraph in the document and other similar stuff"
         )
         print(query)
@@ -18,7 +18,7 @@ async def test_query_parser():
 
         # Save the query result to a file
         with open(os.path.join(output_dir, "query_parser_result.json"), "w") as f:
-            json.dump(query.dict(), f, indent=4)
+            json.dump(query.model_dump(), f, indent=4)
 
         assert query != ""
     except Exception as e:

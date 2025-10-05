@@ -13,12 +13,12 @@ class GeminiSegmentor:
     def __init__(self):
         self.gemini = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-    def execute(self, image: Image.Image) -> list[dict]:
+    def execute(self, image: Image.Image, query: str) -> list[dict]:
         original_width, original_height = image.size
 
         resized_image = utils.resize_image(image=image, max_size=640)
 
-        prompt = utils.build_detection_prompt("red text")
+        prompt = utils.build_detection_prompt(query)
 
         try:
             response = self.gemini.models.generate_content(
@@ -49,6 +49,14 @@ class GeminiSegmentor:
                         y1 = int((ymin / 1000) * original_height)
                         x2 = int((xmax / 1000) * original_width)
                         y2 = int((ymax / 1000) * original_height)
+
+                        # Store pixel coordinates in the item for later use
+                        item["pixel_coords"] = {
+                            "x": x1,
+                            "y": y1,
+                            "width": x2 - x1,
+                            "height": y2 - y1,
+                        }
 
                         # Draw bounding box
                         draw.rectangle([(x1, y1), (x2, y2)], outline="red", width=3)
