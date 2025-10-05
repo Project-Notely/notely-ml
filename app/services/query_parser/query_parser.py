@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
 from langchain_google_genai import ChatGoogleGenerativeAI
+from pydantic import BaseModel, Field
 
 from app.core.config import settings
 

@@ -1,8 +1,6 @@
-import os
-
 from google import genai
 from google.genai import types
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 from app.core.config import settings
 
@@ -30,56 +28,36 @@ class GeminiSegmentor:
                 ),
             )
 
-            # Parse response
+            # parse response
             bbox_data = utils.parse_gemini_response(response.text)
 
-            # Draw bounding boxes on original image
-            draw_image = image.copy()
-            draw = ImageDraw.Draw(draw_image)
+            # convert normalized coordinates to pixel coordinates
+            for item in bbox_data:
+                if "box_2d" not in item:
+                    continue
 
-            for i, item in enumerate(bbox_data):
-                if "box_2d" in item:
-                    # Gemini returns [ymin, xmin, ymax, xmax] normalized to 0-1000
-                    coords = item["box_2d"]
-                    if len(coords) == 4:
-                        ymin, xmin, ymax, xmax = coords
+                coords = item["box_2d"]
+                if len(coords) != 4:
+                    continue
 
-                        # Convert from normalized coordinates (0-1000) to pixel coordinates
-                        x1 = int((xmin / 1000) * original_width)
-                        y1 = int((ymin / 1000) * original_height)
-                        x2 = int((xmax / 1000) * original_width)
-                        y2 = int((ymax / 1000) * original_height)
+                ymin, xmin, ymax, xmax = coords
 
-                        # Store pixel coordinates in the item for later use
-                        item["pixel_coords"] = {
-                            "x": x1,
-                            "y": y1,
-                            "width": x2 - x1,
-                            "height": y2 - y1,
-                        }
+                # convert from normalized coordinates (0-1000) to pixel coordinates
+                x1 = int((xmin / 1000) * original_width)
+                y1 = int((ymin / 1000) * original_height)
+                x2 = int((xmax / 1000) * original_width)
+                y2 = int((ymax / 1000) * original_height)
 
-                        # Draw bounding box
-                        draw.rectangle([(x1, y1), (x2, y2)], outline="red", width=3)
+                # store pixel coordinates in the item for later use
+                item["pixel_coords"] = {
+                    "x": x1,
+                    "y": y1,
+                    "width": x2 - x1,
+                    "height": y2 - y1,
+                }
 
-                        # Add label
-                        label = item.get("label", f"Box {i + 1}")
-                        try:
-                            font = ImageFont.load_default()
-                            # Draw background for text visibility
-                            text_bbox = draw.textbbox((x1, y1 - 25), label, font=font)
-                            draw.rectangle(text_bbox, fill="red")
-                            draw.text((x1, y1 - 25), label, fill="white", font=font)
-                        except:
-                            draw.text((x1, y1 - 20), label, fill="red")
-
-                        print(f"Detected: {label} at ({x1}, {y1}, {x2}, {y2})")
-
-            # Save image with bounding boxes
-            output_path = "outputs/test.png"
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            draw_image.save(output_path)
-            print(f"Saved image with bounding boxes to: {output_path}")
-            print(f"Found {len(bbox_data)} objects total")
+            # draw debug bounding boxes if DEBUG is enabled
+            utils.draw_debug_bounding_boxes(image, bbox_data)
 
             return bbox_data
 

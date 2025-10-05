@@ -36,7 +36,6 @@ class DocumentSegment(BaseModel):
     text: str = Field(..., description="Text content of the segment")
     segment_type: SegmentType = Field(..., description="Type of segment")
     bbox: BoundingBox | None = Field(None, description="Bounding box coordinates")
-    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score")
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata"
     )

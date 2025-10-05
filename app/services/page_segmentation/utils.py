@@ -1,7 +1,9 @@
 import json
+import os
 
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from google.genai import types
+from app.core.config import settings
 
 
 def resize_image(image: Image.Image, max_size: int = 640) -> Image.Image:
@@ -82,23 +84,50 @@ def build_detection_prompt(search_term: str) -> str:
     )
 
 
-def get_segmentation_tool_schema() -> types.Tool:
-    """Define the function calling schema for document segmentation."""
-    return types.Tool(
-        function_declarations=[
-            types.FunctionDeclaration(
-                name="extract_segments",
-                description="Extracts specified segments from a document image based on a user's query.",
-                parameters=types.Schema(
-                    type=types.Type.OBJECT,
-                    properties={
-                        "query": types.Schema(
-                            type=types.Type.STRING,
-                            description="The user's natural language query specifying what to extract. For example: 'the main title', 'all the paragraphs and the chart on the left'.",
-                        )
-                    },
-                    required=["query"],
-                ),
-            )
-        ]
-    )
+def draw_debug_bounding_boxes(
+    image: Image.Image, bbox_data: list[dict], output_path: str = "outputs/test.png"
+) -> None:
+    """Draw bounding boxes on the image for debugging purposes.
+
+    Args:
+        image: The original image to draw on.
+        bbox_data: List of bounding box data with pixel_coords already calculated.
+        output_path: Path to save the debug image.
+    """
+
+    if not settings.DEBUG:
+        return
+
+    # draw bounding boxes on original image
+    draw_image = image.copy()
+    draw = ImageDraw.Draw(draw_image)
+
+    for i, item in enumerate(bbox_data):
+        if "pixel_coords" not in item:
+            continue
+
+        coords = item["pixel_coords"]
+        x1, y1 = coords["x"], coords["y"]
+        x2, y2 = x1 + coords["width"], y1 + coords["height"]
+
+        # draw bounding box
+        draw.rectangle([(x1, y1), (x2, y2)], outline="red", width=3)
+
+        # add label
+        label = item.get("label", f"Box {i + 1}")
+        try:
+            font = ImageFont.load_default()
+            # draw background for text visibility
+            text_bbox = draw.textbbox((x1, y1 - 25), label, font=font)
+            draw.rectangle(text_bbox, fill="red")
+            draw.text((x1, y1 - 25), label, fill="white", font=font)
+        except:
+            draw.text((x1, y1 - 20), label, fill="red")
+
+        print(f"Detected: {label} at ({x1}, {y1}, {x2}, {y2})")
+
+    # save image with bounding boxes
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    draw_image.save(output_path)
+    print(f"Saved image with bounding boxes to: {output_path}")
+    print(f"Found {len(bbox_data)} objects total")

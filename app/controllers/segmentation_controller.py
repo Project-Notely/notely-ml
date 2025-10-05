@@ -14,9 +14,6 @@ from app.services.query_parser.query_parser import QueryParser
 
 
 async def segment_document(file: UploadFile, query: str) -> SegmentationResult:
-    """Orchestrates the document segmentation by first parsing the query
-    and then executing the segmentation.
-    """
     try:
         # parse natural language query
         parser = QueryParser()
@@ -24,25 +21,28 @@ async def segment_document(file: UploadFile, query: str) -> SegmentationResult:
 
         # read image file
         contents = await file.read()
-        image = Image.open(io.BytesIO(contents))
+        image: Image.Image = Image.open(io.BytesIO(contents))
 
         # segment the document using the processed query
         segmentor = GeminiSegmentor()
-        bbox_data = segmentor.execute(image=image, query=processed_query.query)
+        bbox_data: list[dict] = segmentor.execute(
+            image=image, query=processed_query.query
+        )
 
         # transform bbox_data into DocumentSegment objects
         segments = []
         for item in bbox_data:
-            if "pixel_coords" in item:
-                coords = item["pixel_coords"]
-                segment = DocumentSegment(
-                    text=item.get("label", ""),
-                    segment_type=SegmentType.TEXT,  # default type
-                    bbox=BoundingBox(**coords),
-                    confidence=1.0,  # gemini doesn't provide confidence scores
-                    metadata=item,
-                )
-                segments.append(segment)
+            if "pixel_coords" not in item:
+                continue
+
+            coords = item["pixel_coords"]
+            segment = DocumentSegment(
+                text=item.get("label", "N/A"),
+                segment_type=SegmentType.TEXT,  # default type
+                bbox=BoundingBox(**coords),
+                metadata=item,
+            )
+            segments.append(segment)
 
         return SegmentationResult(
             success=True,
@@ -51,8 +51,6 @@ async def segment_document(file: UploadFile, query: str) -> SegmentationResult:
             strategy_used="gemini-2.5-flash",
         )
     except ValueError as e:
-        # catch specific value errors, e.g., from the segmentor
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        # general exception for other errors
         raise HTTPException(status_code=500, detail=f"Failed to process request: {e}")

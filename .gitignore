@@ -27,3 +27,5 @@ output/
 *.webp
 
 push.sh
+outputs/
+tests/results/
