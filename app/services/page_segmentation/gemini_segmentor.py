@@ -63,7 +63,6 @@ class GeminiSegmentor:
 
         except Exception as e:
             print(f"Error during processing: {e}")
-            print(
-                f"Raw response: {response.text if 'response' in locals() else 'No response'}"
-            )
+            raw_response = response.text if "response" in locals() else "No response"
+            print(f"Raw response: {raw_response}")
             raise e

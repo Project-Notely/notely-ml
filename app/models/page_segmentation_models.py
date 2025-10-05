@@ -36,9 +36,6 @@ class DocumentSegment(BaseModel):
     text: str = Field(..., description="Text content of the segment")
     segment_type: SegmentType = Field(..., description="Type of segment")
     bbox: BoundingBox | None = Field(None, description="Bounding box coordinates")
-    metadata: dict[str, Any] = Field(
-        default_factory=dict, description="Additional metadata"
-    )
 
 
 class SegmentationResult(BaseModel):

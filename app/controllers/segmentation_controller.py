@@ -40,7 +40,6 @@ async def segment_document(file: UploadFile, query: str) -> SegmentationResult:
                 text=item.get("label", "N/A"),
                 segment_type=SegmentType.TEXT,  # default type
                 bbox=BoundingBox(**coords),
-                metadata=item,
             )
             segments.append(segment)
 
@@ -51,6 +50,8 @@ async def segment_document(file: UploadFile, query: str) -> SegmentationResult:
             strategy_used="gemini-2.5-flash",
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process request: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to process request: {e}"
+        ) from e

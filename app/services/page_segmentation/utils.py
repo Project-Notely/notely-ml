@@ -2,7 +2,7 @@ import json
 import os
 
 from PIL import Image, ImageDraw, ImageFont
-from google.genai import types
+
 from app.core.config import settings
 
 
@@ -42,9 +42,8 @@ def parse_gemini_response(response_text: str) -> list[dict]:
 
     except json.JSONDecodeError as e:
         print(f"JSON decode error: {e}")
-        print(
-            f"Attempting to parse: {json_str if 'json_str' in locals() else response_text}"
-        )
+        fallback = json_str if "json_str" in locals() else response_text
+        print(f"Attempting to parse: {fallback}")
 
         # Try to extract any JSON-like structures
         import re
@@ -55,7 +54,7 @@ def parse_gemini_response(response_text: str) -> list[dict]:
         for match in matches:
             try:
                 return json.loads(match)
-            except:
+            except json.JSONDecodeError:
                 continue
 
         return []
@@ -65,11 +64,13 @@ def build_detection_prompt(search_term: str) -> str:
     return (
         f"# Detect {search_term} in this screenshot with high accuracy.\n\n"
         "## Instructions:\n"
-        f"1. Return up to 10 detections of {search_term} with highest confidence scores\n"
+        f"1. Return up to 10 detections of {search_term} "
+        "with highest confidence scores\n"
         "2. If no detections are found, return an empty list []\n"
         "## Output format:\n"
         "- Return a JSON list where each entry contains:\n"
-        "- 'box_2d': bounding box coordinates [ymin, xmin, ymax, xmax] normalized to 0-1000\n"
+        "- 'box_2d': bounding box coordinates [ymin, xmin, ymax, xmax] "
+        "normalized to 0-1000\n"
         f"## Example output for successful detection of {search_term}:\n"
         "[\n"
         "  {\n"
@@ -94,7 +95,6 @@ def draw_debug_bounding_boxes(
         bbox_data: List of bounding box data with pixel_coords already calculated.
         output_path: Path to save the debug image.
     """
-
     if not settings.DEBUG:
         return
 
@@ -121,7 +121,7 @@ def draw_debug_bounding_boxes(
             text_bbox = draw.textbbox((x1, y1 - 25), label, font=font)
             draw.rectangle(text_bbox, fill="red")
             draw.text((x1, y1 - 25), label, fill="white", font=font)
-        except:
+        except Exception:
             draw.text((x1, y1 - 20), label, fill="red")
 
         print(f"Detected: {label} at ({x1}, {y1}, {x2}, {y2})")
