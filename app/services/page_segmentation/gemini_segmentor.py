@@ -24,7 +24,6 @@ class GeminiSegmentor:
                 contents=[prompt, resized_image],
                 config=types.GenerateContentConfig(
                     temperature=0,
-                    thinking_config=types.ThinkingConfig(thinking_budget=0),
                 ),
             )
 

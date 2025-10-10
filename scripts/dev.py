@@ -1,13 +1,10 @@
-#!/usr/bin/env python3
-"""Development server script."""
-
 import sys
 from subprocess import run
 
 
 def main() -> int:
     """Run the uvicorn development server."""
-    port = 8888
+    port = 9999
     print(f"🚀 Starting development server at http://0.0.0.0:{port}")
     cmd = [
         "uvicorn",
