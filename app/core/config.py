@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # Application settings
     PROJECT_NAME: str = "Notely ML API"
     VERSION: str = "0.1.0"
-    DEBUG: bool = False
+    DEBUG: bool = True
 
     GEMINI_API_KEY: str
 

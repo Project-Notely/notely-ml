@@ -1,6 +1,8 @@
+import io
 import json
 import os
 
+import cairosvg
 from PIL import Image, ImageDraw, ImageFont
 
 from app.core.config import settings
@@ -13,6 +15,49 @@ def resize_image(image: Image.Image, max_size: int = 640) -> Image.Image:
     new_width = int(width * scale)
     new_height = int(height * scale)
     return image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+
+def svg_to_pil_image(svg_content: str, width: float, height: float) -> Image.Image:
+    """Convert SVG content to PIL Image with white background.
+
+    Args:
+        svg_content: The SVG content as a string.
+        width: The width of the SVG canvas.
+        height: The height of the SVG canvas.
+
+    Returns:
+        PIL Image object created from the SVG with white background.
+
+    Raises:
+        ValueError: If the SVG content is invalid or conversion fails.
+    """
+    try:
+        # Convert SVG to PNG bytes using cairosvg
+        png_bytes = cairosvg.svg2png(
+            bytestring=svg_content.encode("utf-8"),
+            output_width=int(width),
+            output_height=int(height),
+        )
+
+        # Convert PNG bytes to PIL Image
+        image = Image.open(io.BytesIO(png_bytes))
+
+        # Create a white background image
+        white_background = Image.new("RGB", image.size, (255, 255, 255))
+
+        # If the image has an alpha channel, composite it onto the white background
+        if image.mode in ("RGBA", "LA"):
+            white_background.paste(
+                image, mask=image.split()[-1]
+            )  # Use alpha channel as mask
+            return white_background
+        else:
+            # If no alpha channel, just paste the image directly
+            white_background.paste(image)
+            return white_background
+
+    except Exception as e:
+        raise ValueError(f"Failed to convert SVG to PIL Image: {str(e)}") from e
 
 
 def parse_gemini_response(response_text: str) -> list[dict]:
@@ -95,8 +140,6 @@ def draw_debug_bounding_boxes(
         bbox_data: List of bounding box data with pixel_coords already calculated.
         output_path: Path to save the debug image.
     """
-    if not settings.DEBUG:
-        return
 
     # draw bounding boxes on original image
     draw_image = image.copy()

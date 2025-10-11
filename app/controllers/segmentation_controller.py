@@ -1,7 +1,11 @@
 import io
+import os
+import uuid
+from typing import Union
 
 from fastapi import HTTPException, UploadFile
 from PIL import Image
+from pydantic import BaseModel
 
 from app.models.page_segmentation_models import (
     BoundingBox,
@@ -10,23 +14,56 @@ from app.models.page_segmentation_models import (
     SegmentType,
 )
 from app.services.page_segmentation.gemini_segmentor import GeminiSegmentor
+from app.services.page_segmentation import utils
 from app.services.query_parser.query_parser import QueryParser
+import logging
+from app.core.config import settings
 
 
-async def segment_document(file: UploadFile, query: str) -> SegmentationResult:
+class SegmentInput(BaseModel):
+    svg: str
+    width: float
+    height: float
+    query: str
+
+
+async def segment_document(
+    input_data: Union[UploadFile, SegmentInput], query: str
+) -> SegmentationResult:
+    logging.info(f"Segmenting document with query: {query}")
     try:
         # parse natural language query
         parser = QueryParser()
         processed_query = await parser.execute(user_query=query)
 
-        # read image file
-        contents = await file.read()
-        image: Image.Image = Image.open(io.BytesIO(contents))
+        if settings.DEBUG:
+            logging.info(f"Processed query: {processed_query}")
+            data_dir = "data"
+            os.makedirs(data_dir, exist_ok=True)
+            svg_path = os.path.join(data_dir, f"drawing.svg")
+            with open(svg_path, "w", encoding="utf-8") as f:
+                f.write(input_data.svg)
+            logging.info(f"Saved SVG to: {svg_path}")
+
+        # convert SVG to PIL image
+        image = utils.svg_to_pil_image(
+            svg_content=input_data.svg, width=input_data.width, height=input_data.height
+        )
+
+        if settings.DEBUG:
+            logging.info(f"Converted image to: {image.size}, mode: {image.mode}")
+            converted_image_path = os.path.join(data_dir, f"converted.png")
+            image.save(converted_image_path)
+            logging.info(f"Saved converted image to: {converted_image_path}")
+            logging.info(f"Image size: {image.size}, mode: {image.mode}")
 
         # segment the document using the processed query
+        # todo remove ========================================================
+        image = Image.open("data/notes.png")
+        # todo remove ========================================================
         segmentor = GeminiSegmentor()
         bbox_data: list[dict] = segmentor.execute(
-            image=image, query=processed_query.query
+            image=image, query="red text"
         )
 
         # transform bbox_data into DocumentSegment objects
@@ -43,6 +80,7 @@ async def segment_document(file: UploadFile, query: str) -> SegmentationResult:
             )
             segments.append(segment)
 
+        logging.info(f"Segmented {len(segments)} segments")
         return SegmentationResult(
             success=True,
             segments=segments,
