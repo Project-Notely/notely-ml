@@ -1,4 +1,3 @@
-import io
 
 from fastapi import APIRouter, File, UploadFile, Form
 
